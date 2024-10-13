@@ -1,0 +1,7 @@
+.*~
+*~
+src/lex.yy.c
+src/*.o
+.vscode
+examples/programas_cmenos.zip
+bin
