@@ -3,13 +3,6 @@
 
 /** STRUCTURES **/
 
-struct Symbol {
-	// Symbol is a BST
-	struct Symbol *left;
-	struct Symbol *right;
-	void *symbol;
-};
-
 struct Token {
 	char *name;
 	void *lexeme;
@@ -26,9 +19,7 @@ struct Token * lastToken;
 
 /** FUNCTIONS **/
 
-struct Symbol * allocSymbol();
 struct Token * allocToken();
-void insertSymbolTable(struct Symbol *current, struct Symbol *next) ;
 void insertToken(struct Token *last, struct Token *next);
 void insertId(char *text, int length, int currentLine, bool isFirstMatch);
 void insertNum(char *text, int length, int currentLine, bool isFirstMatch);
