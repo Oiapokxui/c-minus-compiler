@@ -8,7 +8,7 @@
 #include "symbol.h" /* Declares functions on Symbol structure */
 #include "token.h" /* Declares functions on Symbol structure */
 
-void insertFirst(struct Symbol *symbol, struct Token *token) {
+void initializeGlobalVariables(struct Symbol *symbol, struct Token *token) {
 	symbolTable = symbol;	
 	firstToken = token;	
 	lastToken = token;
@@ -29,7 +29,7 @@ void insertGeneric(void *lexeme, char *tokenName, int currentLine, bool isFirstM
 	struct Token * token = insertToken(lastToken, lexeme, tokenName, currentLine, symbol);
 	
 	if (isFirstMatch) {
-		insertFirst(symbol, token);
+		initializeGlobalVariables(symbol, token);
 		return;
 	} 
 
