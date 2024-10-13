@@ -6,21 +6,7 @@
 #include <string.h>  /* Declares functions operating on strings.  */
 #include "cminus.h" /* Declares functions to be used by Lexer */
 #include "symbol.h" /* Declares functions on Symbol structure */
-
-
-struct Token * allocToken() {
-	struct Token * ptr = malloc(sizeof(struct Token));
-	ptr->name = NULL;
-	ptr->lexeme = NULL;
-	ptr->line = -1;
-	ptr->attribute = NULL;
-	ptr->next = NULL;
-	return ptr;
-}
-
-void insertToken(struct Token *last, struct Token *next) {
-	last->next = next;
-}
+#include "token.h" /* Declares functions on Symbol structure */
 
 void insertFirst(struct Symbol *symbol, struct Token *token) {
 	symbolTable = symbol;	
