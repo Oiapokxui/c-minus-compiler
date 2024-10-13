@@ -1,4 +1,3 @@
-
 #include <stdbool.h> /* need this for boolean operations */
 #include <stddef.h>  /* Defines NULL. */
 #include <stdlib.h>  /* Declares malloc.  */
@@ -6,12 +5,15 @@
 #include <string.h>  /* Declares functions operating on strings.  */
 #include "cminus.h" /* Declares functions to be used by Lexer */
 #include "symbol.h" /* Declares functions on Symbol structure */
-#include "token.h" /* Declares functions on Symbol structure */
 
-void initializeGlobalVariables(struct Symbol *symbol, struct Token *token) {
-	symbolTable = symbol;	
-	firstToken = token;	
-	lastToken = token;
+#define	END_OF_ARRAY ('\0')
+
+struct State *initState() {
+	struct State *state = malloc(sizeof(struct State));
+	state->symbolTable = NULL;
+	state->tokens = NULL;
+	state->currentLine = -1;
+	return state;
 }
 
 char *copyLexeme(char *from, int lexemeLength) {
@@ -22,51 +24,80 @@ char *copyLexeme(char *from, int lexemeLength) {
 	return lexeme;
 }
 
-void insertGeneric(void *lexeme, char *tokenName, int currentLine, bool isFirstMatch) {
-	printf("Insert generic is called %s %s %i %i\n", (char *) lexeme, tokenName, currentLine, isFirstMatch);
-	struct Symbol * symbol = searchOrInsert(symbolTable, lexeme);
-
-	struct Token * token = insertToken(lastToken, lexeme, tokenName, currentLine, symbol);
-	
-	if (isFirstMatch) {
-		initializeGlobalVariables(symbol, token);
+void increaseCurrentLine(struct State *state) {
+	if (state == NULL) {
 		return;
-	} 
-
-	printSymbolTable(symbolTable);
-	lastToken = token; 	// TODO: Define boundaries of responsability for lastToken properly
+	}
+	if (state->currentLine == -1) {
+		state->currentLine = 0;
+	}
+	state->currentLine++;
 }
 
-void insertId(char *text, int length, int currentLine, bool isFirstMatch) {
+bool shouldInsertIntoSymbolTable(const enum TokenType type) {
+	return type == ID;
+}
+
+void insertIntoState(char *lexeme, enum TokenType type, struct State *state) {
+	if (state == NULL) {
+		return;
+	}
+	struct Symbol * symbol = NULL;
+	if (shouldInsertIntoSymbolTable(type)) {
+		symbol = searchOrInsertSymbol(state->symbolTable, lexeme);
+	}
+	struct TokenList * tokens = insertToken(state->tokens, lexeme, type, state->currentLine, symbol);
+	if (state->tokens == NULL) {
+		state->tokens = tokens;
+	}
+	if(state->symbolTable == NULL && symbol != NULL) {
+		state->symbolTable = symbol;
+	}
+}
+
+void insertGeneric(void *lexeme, enum TokenType type, struct State *state) {
+	if (state == NULL) {
+		return;
+	}
+	insertIntoState(lexeme, type, state);
+	printTokens(state->tokens);
+	printSymbolTable(state->symbolTable);
+	printf("\n");
+}
+
+void insertAsText(char *text, int length, enum TokenType type, struct State *state) {
 	char* lexeme = copyLexeme(text, length);	
-	insertGeneric(lexeme, "ID", currentLine, isFirstMatch);
+	insertGeneric(lexeme, type, state);
 }
 
-void insertNum(char *text, int length, int currentLine, bool isFirstMatch) {
+void insertAsInt(char *text, int length, enum TokenType type, struct State *state) {
 	char* lexeme = copyLexeme(text, length);	
 	// Right now, I'm not checking for errors with this conversion
-	long int num = strtol(lexeme, NULL, 10);
+	const long int num = strtol(lexeme, NULL, 10);
 	long int *numPtr = malloc(sizeof(long int));
+	*numPtr = num;
 
-	insertGeneric(numPtr, "NUM", currentLine, isFirstMatch);
+	insertGeneric(numPtr, type, state);
 }
 
-void insertSpecial(char *text, int length, int currentLine, bool isFirstMatch) {
-	char* lexeme = copyLexeme(text, length);	
-	insertGeneric(lexeme, lexeme, currentLine, isFirstMatch);
+void insertWhitespace(struct State *state) {
+	char *lexeme = "\n";
+	increaseCurrentLine(state);
+	insertAsText(lexeme, 1, WHITESPACE, state);
 }
 
-int skipComment(int input(), int currentLine) {
-	int c = input();
-
-	for ( ; ; ) {
+void skipComment(int input(), struct State *state) {
+	if (state == NULL) {
+		return;
+	}
+	for (int c ; ; c = input()) {
 		do { 
 			c = input(); 
 			if ( c == '\n' ) {
-				currentLine++;
+				insertWhitespace(state);
 			}
 		}
-		while ( c != '*' && c != EOF );    /* eat up text of comment */
+		while ( c != '*' && c != EOF && c != END_OF_ARRAY);    /* eat up text of comment */
 
 		if ( c == '*' ) {
 			do { c = input(); }
@@ -74,11 +105,9 @@ int skipComment(int input(), int currentLine) {
 			if ( c == '/' ) break; /* found the end */
 		}
 
-		if ( c == EOF ) {
+		if ( c == EOF || c == END_OF_ARRAY ) {
 			// create error token here
 			break;
 		}
-		c = input();
 	}
-	return currentLine;
 }

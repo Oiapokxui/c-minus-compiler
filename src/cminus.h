@@ -1,15 +1,17 @@
-#include <stdbool.h> /* need this for boolean operations */
-#include <stddef.h>  /* Defines NULL. */
+#include "token.h"
 
 /** VARIABLES **/
 
-struct Symbol * symbolTable;
-struct Token * firstToken;
-struct Token * lastToken;
+struct State {
+    struct Symbol *symbolTable;
+    struct TokenList *tokens;
+    int currentLine;
+};
 
 /** FUNCTIONS **/
 
-void insertId(char *text, int length, int currentLine, bool isFirstMatch);
-void insertNum(char *text, int length, int currentLine, bool isFirstMatch);
-void insertSpecial(char *text, int length, int currentLine, bool isFirstMatch);
-int skipComment(int input(), int currentLine);
+struct State *initState();
+void insertWhitespace(struct State *state);
+void insertAsText(char *text, int length, enum TokenType type, struct State *state);
+void insertAsInt(char *text, int length, enum TokenType type, struct State *state);
+void skipComment(int input(), struct State *state);

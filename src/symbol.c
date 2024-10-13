@@ -49,15 +49,12 @@ void insertSymbolTable(struct Symbol *current, struct Symbol *next) {
 		// Won't do anything if either of symbols are null or both symbols have the same address
 		return;
 	}
-	printf("Insert symbol table is called %s %s\n", (char *) current->symbol, (char *) next->symbol);
-
 	struct Symbol * nextCurrent = NULL;
 	int comparison = compareSymbols(current, next);
 	int inverseComparison = compareSymbols(next, current);
 
 	if(comparison  == inverseComparison) {
 		// symbols are equal and insertion is not needed
-		nextCurrent = current->right;
 		return;
 	}
 
@@ -103,14 +100,14 @@ struct Symbol *searchSymbol(struct Symbol *current, char *symbol) {
 	return searchSymbol(nextCurrent, symbol);
 }
 
-struct Symbol *searchOrInsert(struct Symbol *table, char *symbol) {
+struct Symbol *searchOrInsertSymbol(struct Symbol *table, char *symbol) {
 	struct Symbol *obtained = searchSymbol(table, symbol);
 	if (obtained != NULL) {
 		return obtained;
 	}
-	struct Symbol *new = allocSymbol(symbol);
-	insertSymbolTable(table, new);
-	return new;	
+	struct Symbol *newSymbol = allocSymbol(symbol);
+	insertSymbolTable(table, newSymbol);
+	return newSymbol;
 }
 
 void printSymbolTable(struct Symbol *table) {
@@ -118,7 +115,7 @@ void printSymbolTable(struct Symbol *table) {
 		printf("()");
 		return;
 	}
-	printf("( "/*, (char *) table->symbol*/);
+	printf("( ");
 	if (table->symbol == NULL) {
 		printf("[] ");
 	}
