@@ -10,6 +10,4 @@ struct Token {
 	struct Token *next;
 };
 
-struct Token * allocToken();
-
-void insertToken(struct Token *last, struct Token *next);
+struct Token *insertToken(struct Token *last, void *lexeme, char *tokenName, int currentLine, struct Symbol *symbol);

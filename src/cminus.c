@@ -26,11 +26,7 @@ void insertGeneric(void *lexeme, char *tokenName, int currentLine, bool isFirstM
 	printf("Insert generic is called %s %s %i %i\n", (char *) lexeme, tokenName, currentLine, isFirstMatch);
 	struct Symbol * symbol = searchOrInsert(symbolTable, lexeme);
 
-	struct Token * token = allocToken();
-	token->lexeme = lexeme;
-	token->name = tokenName;
-	token->line = currentLine;
-	token->attribute = symbol;
+	struct Token * token = insertToken(lastToken, lexeme, tokenName, currentLine, symbol);
 	
 	if (isFirstMatch) {
 		insertFirst(symbol, token);
@@ -38,8 +34,7 @@ void insertGeneric(void *lexeme, char *tokenName, int currentLine, bool isFirstM
 	} 
 
 	printSymbolTable(symbolTable);
-	insertToken(lastToken, token);
-	lastToken = token;
+	lastToken = token; 	// TODO: Define boundaries of responsability for lastToken properly
 }
 
 void insertId(char *text, int length, int currentLine, bool isFirstMatch) {
