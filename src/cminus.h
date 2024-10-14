@@ -1,4 +1,5 @@
 #include "token.h"
+#include "symbol.h"
 
 /** VARIABLES **/
 

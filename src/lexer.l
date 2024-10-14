@@ -45,6 +45,16 @@ TYPE_ASSIGN int|void
 . { insertAsText(yytext, yyleng, ERROR, lexerState); }
 %%
 
+void printStateData(struct State *lexerState) {
+    printf("*****************\nLista de tokens:\n");
+	printTokens(lexerState->tokens);
+    printf("\n*****************\n");
+    printf("*****************\nTabela de simbolos:\n");
+    printSymbolTable(lexerState->symbolTable);
+    printf("\n*****************\n");
+	printf("\n");
+}
+
 int main(int argCount, char *argVector[]) {
 	/* Dunno if I'll need it
 	++argv, --argc;  // skip over program name

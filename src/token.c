@@ -35,7 +35,14 @@ void printToken(struct Token *token) {
 	if (token == NULL) {
 		return;
 	}
-	printf("[%s] -> ", (char *) token->lexeme, token->type, token->line);
+	printf("[");
+	if (token->type == NUM) {
+		printf("%i", *(int *)token->lexeme);
+	}
+	else {
+		printf("%s", (char *) token->lexeme);
+	}
+	printf(" line: %i type: %i] -> ", token->line, token->type);
 	printToken(token->next);
 }
 

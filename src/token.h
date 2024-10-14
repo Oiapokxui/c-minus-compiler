@@ -15,6 +15,7 @@ struct Token {
 	void *lexeme;
 	enum TokenType type;
 	int line;
+	// Does it make sense to have attributes for tokens like relational operations?
 	struct Symbol *attribute;
 	struct Token *next;
 };

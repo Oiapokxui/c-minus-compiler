@@ -72,9 +72,6 @@ void insertGeneric(void *lexeme, enum TokenType type, struct State *state) {
 		return;
 	}
 	insertIntoState(lexeme, type, state);
-	printTokens(state->tokens);
-	printSymbolTable(state->symbolTable);
-	printf("\n");
 }
 
 void insertAsText(char *text, int length, enum TokenType type, struct State *state) {
