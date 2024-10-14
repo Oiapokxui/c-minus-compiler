@@ -1,0 +1,8 @@
+int inserir (int k, int x, int n, int v[])
+{
+int j;
+for (j = n; j > k; --j) v[j] = v[j-1];
+v[k] = x;
+return n + 2
+}
+/* erro de sintaxe

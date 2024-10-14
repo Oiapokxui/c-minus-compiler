@@ -1,0 +1,16 @@
+/* identificadores com nomes parecidos com palavras reservadas */
+
+int inteiro[10];
+
+void voidoido( int a[], int low, int high)
+{
+  void aloformo;
+  int oelseve = 1000;
+  int life;
+  int retornoFinanceiro = -1000;
+  void uawhile;
+  int ab34fhg;
+}
+
+void main(void)
+{ }
