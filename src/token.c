@@ -11,7 +11,7 @@ struct TokenList * allocTokenList(struct Token *first) {
 	ptr->last = first;
 	return ptr;
 }
-struct Token * allocToken(void *lexeme, int currentLine, enum TokenType type, struct Symbol *symbol) {
+struct Token * allocToken(void *lexeme, enum TokenType type, int currentLine, struct Symbol *symbol) {
 	struct Token * ptr = malloc(sizeof(struct Token));
 	ptr->lexeme = lexeme;
 	ptr->line = currentLine;

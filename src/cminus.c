@@ -12,7 +12,8 @@ struct State *initState() {
 	struct State *state = malloc(sizeof(struct State));
 	state->symbolTable = NULL;
 	state->tokens = NULL;
-	state->currentLine = -1;
+	// file has at least one line
+	state->currentLine = 1;
 	return state;
 }
 
@@ -24,14 +25,25 @@ char *copyLexeme(char *from, int lexemeLength) {
 	return lexeme;
 }
 
-void increaseCurrentLine(struct State *state) {
+int countLineBreaks(const char *sequence) {
+	if (sequence == NULL) {
+		return 0;
+	}
+	int count = -1;
+	sequence--;
+	do {
+		count++;
+		sequence++;
+		sequence = strchr(sequence, '\n');
+	} while (sequence != NULL && *sequence != END_OF_ARRAY );
+	return count;
+}
+
+void increaseCurrentLine(struct State *state, int count) {
 	if (state == NULL) {
 		return;
 	}
-	if (state->currentLine == -1) {
-		state->currentLine = 0;
-	}
-	state->currentLine++;
+	state->currentLine += count;
 }
 
 bool shouldInsertIntoSymbolTable(const enum TokenType type) {
@@ -80,10 +92,16 @@ void insertAsInt(char *text, int length, enum TokenType type, struct State *stat
 	insertGeneric(numPtr, type, state);
 }
 
-void insertWhitespace(struct State *state) {
+void insertLineBreak(struct State *state) {
 	char *lexeme = "\n";
-	increaseCurrentLine(state);
+	increaseCurrentLine(state, 1);
 	insertAsText(lexeme, 1, WHITESPACE, state);
+}
+
+void insertWhitespace(char *text, int length, struct State *state) {
+	int count = countLineBreaks(copyLexeme(text, length));
+	increaseCurrentLine(state, count);
+	insertAsText(text, length, WHITESPACE, state);
 }
 
 void skipComment(int input(), struct State *state) {
@@ -94,7 +112,7 @@ void skipComment(int input(), struct State *state) {
 		do { 
 			c = input(); 
 			if ( c == '\n' ) {
-				insertWhitespace(state);
+				increaseCurrentLine(state, 1);
 			}
 		}
 		while ( c != '*' && c != EOF && c != END_OF_ARRAY);    /* eat up text of comment */

@@ -18,6 +18,7 @@ NUM {digito}+
 SPACE [ ]
 TAB [\t]
 NEW_LINE [\n]
+WHITESPACE ({SPACE}|{TAB}|{NEW_LINE})+
 BEGIN_COMMENT \/\*
 END_COMMENT \*\/
 GT >
@@ -33,12 +34,11 @@ TYPE_ASSIGN int|void
 
 %%
 
-{NEW_LINE} { insertWhitespace(lexerState); }
+{WHITESPACE} { insertWhitespace(yytext, yyleng, lexerState);  }
 {RELOP} { insertAsText(yytext, yyleng, RELOP, lexerState);  }
 {SPECIAL_CHARS} { insertAsText(yytext, yyleng, SPECIAL, lexerState);  }
 {KEYWORDS} { insertAsText(yytext, yyleng, RESERVED, lexerState);  }
 {TYPE_ASSIGN} { insertAsText(yytext, yyleng, TYPEDEF, lexerState);  }
-{SPACE}|{TAB} { insertAsText(yytext, yyleng, WHITESPACE, lexerState);  }
 {BEGIN_COMMENT}  { skipComment(input, lexerState); }
 {ID} { insertAsText(yytext, yyleng, ID, lexerState); }
 {NUM} { insertAsInt(yytext, yyleng, NUM, lexerState); }
