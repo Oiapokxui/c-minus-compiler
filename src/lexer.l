@@ -42,7 +42,7 @@ TYPE_ASSIGN int|void
 {BEGIN_COMMENT}  { skipComment(input, lexerState); }
 {ID} { insertAsText(yytext, yyleng, ID, lexerState); }
 {NUM} { insertAsInt(yytext, yyleng, NUM, lexerState); }
-
+. { insertAsText(yytext, yyleng, ERROR, lexerState); }
 %%
 
 int main(int argCount, char *argVector[]) {

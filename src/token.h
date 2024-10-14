@@ -8,7 +8,7 @@ struct TokenList {
 };
 
 enum TokenType {
-	ID, NUM, RELOP, SPECIAL, TYPEDEF, RESERVED, WHITESPACE
+	ID, NUM, RELOP, SPECIAL, TYPEDEF, RESERVED, WHITESPACE, ERROR
 };
 
 struct Token {
