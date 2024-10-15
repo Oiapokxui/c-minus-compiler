@@ -11,7 +11,7 @@ SRC_DIR = src
 BIN_DIR = bin
 
 # Flags de compilação
-CFLAGS = -g -I ${SRC_DIR}
+CFLAGS = -foptimize-sibling-calls -g -I ${SRC_DIR}
 
 # Arquivo lex que vai ser processado pelo FLEX
 LEX_SRC = ${SRC_DIR}/lexer.l
