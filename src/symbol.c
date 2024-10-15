@@ -70,7 +70,6 @@ void insertSymbolTable(struct Symbol *current, struct Symbol *next) {
 		return;
 	}
 
-	// TODO: Please tail call optimize this	
 	insertSymbolTable(nextCurrent, next);
 }
 

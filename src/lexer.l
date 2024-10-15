@@ -56,9 +56,7 @@ void printStateData(struct State *lexerState) {
 }
 
 int main(int argCount, char *argVector[]) {
-	/* Dunno if I'll need it
-	++argv, --argc;  // skip over program name
-	*/
     lexerState = initState();
 	yylex();
+    printStateData(lexerState);
 }
