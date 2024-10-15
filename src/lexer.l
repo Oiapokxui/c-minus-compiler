@@ -39,7 +39,7 @@ TYPE_ASSIGN int|void
 {SPECIAL_CHARS} { insertAsText(yytext, yyleng, SPECIAL, lexerState);  }
 {KEYWORDS} { insertAsText(yytext, yyleng, RESERVED, lexerState);  }
 {TYPE_ASSIGN} { insertAsText(yytext, yyleng, TYPEDEF, lexerState);  }
-{BEGIN_COMMENT}  { skipComment(input, lexerState); }
+{BEGIN_COMMENT}  { skipComment(yytext, yyleng, input, lexerState); }
 {ID} { insertAsText(yytext, yyleng, ID, lexerState); }
 {NUM} { insertAsInt(yytext, yyleng, NUM, lexerState); }
 . { insertAsText(yytext, yyleng, ERROR, lexerState); }

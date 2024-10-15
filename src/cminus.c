@@ -7,6 +7,7 @@
 #include "symbol.h" /* Declares functions on Symbol structure */
 
 #define	END_OF_ARRAY ('\0')
+#define EXTRA_BUFFER_CAPACITY 64
 
 struct State *initState() {
 	struct State *state = malloc(sizeof(struct State));
@@ -15,6 +16,20 @@ struct State *initState() {
 	// file has at least one line
 	state->currentLine = 1;
 	return state;
+}
+
+char *appendChar(char* buffer, int *length, int *capacity, char c) {
+	if (*length + 1 >= *capacity && buffer != NULL) {
+		*capacity *= 2;
+		buffer = realloc(buffer, *capacity * sizeof(char));
+	}
+	if (buffer == NULL) {
+		exit(1);
+	}
+	buffer[*length] = c;
+	(*length)++;
+	buffer[*length] = '\0'; // Make sure string ends in '\0'
+	return buffer;
 }
 
 char *copyLexeme(char *from, int lexemeLength) {
@@ -101,13 +116,23 @@ void insertWhitespace(char *text, int length, struct State *state) {
 	insertAsText(text, length, WHITESPACE, state);
 }
 
-void skipComment(int input(), struct State *state) {
+void skipComment(char *startComment, int startCommentLength, int input(), struct State *state) {
 	if (state == NULL) {
 		return;
 	}
-	for (int c ; ; c = input()) {
-		do { 
-			c = input(); 
+	// Initializing comment string
+	int initialCapacityMultiplier = (startCommentLength / EXTRA_BUFFER_CAPACITY ) + 1;
+	int capacity = initialCapacityMultiplier * EXTRA_BUFFER_CAPACITY;
+	char *comment = malloc(capacity * sizeof(char));
+	memcpy(comment, startComment, startCommentLength);
+	comment[startCommentLength] = '\0';
+
+	int length = startCommentLength;
+	char c = '\0';
+	for (; ; ) {
+		do {
+			c = input();
+			comment = appendChar(comment, &length, &capacity, c);
 			if ( c == '\n' ) {
 				increaseCurrentLine(state, 1);
 			}
@@ -115,13 +140,19 @@ void skipComment(int input(), struct State *state) {
 		while ( c != '*' && c != EOF && c != END_OF_ARRAY);    /* eat up text of comment */
 
 		if ( c == '*' ) {
-			do { c = input(); }
-			while ( c == '*');    
-			if ( c == '/' ) break; /* found the end */
+			do {
+				c = input();
+				comment = appendChar(comment, &length, &capacity, c);
+			}
+			while ( c == '*');
+			if ( c == '/' ) {
+				insertAsText(comment, length, COMMENT, state);
+				break; /* found the end */
+			}
 		}
 
 		if ( c == EOF || c == END_OF_ARRAY ) {
-			// create error token here
+			insertAsText(comment, length, ERROR, state);
 			break;
 		}
 	}
