@@ -5,3 +5,6 @@ src/*.o
 .vscode
 examples/programas_cmenos.zip
 bin
+.idea
+*.zip
+*.exe
