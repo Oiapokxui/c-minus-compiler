@@ -14,7 +14,7 @@ BIN_DIR = bin
 CFLAGS = -foptimize-sibling-calls -g -I ${SRC_DIR}
 
 # Arquivo lex que vai ser processado pelo FLEX
-LEX_SRC = ${SRC_DIR}/lexer.l
+LEX_SRC = ${SRC_DIR}/lexer/lexer.l
 
 # Arquivo fonte gerado pelo Flex
 LEX_CXX_SRC = lex.yy.c
@@ -35,10 +35,10 @@ ${BIN_DIR}/$(LEX_CXX_SRC):
 	flex -o $@ $(LEX_SRC)
 
 # Regras para compilar os arquivos objeto
-${BIN_DIR}/symbol.o: src/symbol.c
+${BIN_DIR}/symbol.o: src/data/symbol.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-${BIN_DIR}/token.o: src/token.c
+${BIN_DIR}/token.o: src/data/token.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 ${BIN_DIR}/cminus.o: src/cminus.c

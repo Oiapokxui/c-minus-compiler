@@ -4,7 +4,7 @@
 #include <stdio.h>  /* Declares I/O functions and EOF const.  */
 #include <string.h>  /* Declares functions operating on strings.  */
 #include "cminus.h" /* Declares functions to be used by Lexer */
-#include "symbol.h" /* Declares functions on Symbol structure */
+#include "data/symbol.h" /* Declares functions on Symbol structure */
 
 #define	END_OF_ARRAY ('\0')
 #define EXTRA_BUFFER_CAPACITY 64
