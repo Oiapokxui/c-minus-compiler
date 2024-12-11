@@ -6,6 +6,7 @@
 %pointer
 %{
 #include "cminus.h" // Declares functions to be used by Lexer
+#include "token.h" // Declares Tokens and TokenTypes
 #include <stdbool.h> // Declares boolean type
 
 struct State *lexerState;
@@ -27,22 +28,34 @@ GE >=
 LE <=
 EQ ==
 NE !=
-RELOP [+\-*]|{GT}|{LT}|{GE}|{LE}|{EQ}|{NE}
+SUMOP [+-]
+MULTOP [\*]
+RELOP {GT}|{LT}|{GE}|{LE}|{EQ}|{NE}
 SPECIAL_CHARS [/;,()[\]{}=]
-KEYWORDS if|else|while|return
-TYPE_ASSIGN int|void
+IF if
+ELSE else
+WHILE while
+RETURN return
+TYPE_VOID void
+TYPE_INT int
 
 %%
 
-{WHITESPACE} { insertWhitespace(yytext, yyleng, lexerState);  }
-{RELOP} { insertAsText(yytext, yyleng, RELOP, lexerState);  }
-{SPECIAL_CHARS} { insertAsText(yytext, yyleng, SPECIAL, lexerState);  }
-{KEYWORDS} { insertAsText(yytext, yyleng, RESERVED, lexerState);  }
-{TYPE_ASSIGN} { insertAsText(yytext, yyleng, TYPEDEF, lexerState);  }
-{BEGIN_COMMENT}  { skipComment(yytext, yyleng, input, lexerState); }
-{ID} { insertAsText(yytext, yyleng, ID, lexerState); }
-{NUM} { insertAsInt(yytext, yyleng, NUM, lexerState); }
-. { insertAsText(yytext, yyleng, ERROR, lexerState); }
+{WHITESPACE} { /* return WHITESPACE; */ }
+{RELOP} { return RELOP; }
+{MULTOP} { return MULTOP;  }
+{SPECIAL_CHARS} { return SPECIAL; }
+{IF} { return IF; }
+{ELSE} { return ELSE; }
+{WHILE} { return WHILE; }
+{RETURN} { return RETURN; }
+{TYPE_INT} { return TYPEDEF: }
+{TYPE_VOID} { return TYPEDEF: }
+{BEGIN_COMMENT}  { return COMMENT; }
+{ID} { return ID; }
+{NUM} { return NUM; }
+. { return ERROR; }
+
 %%
 
 void printStateData(struct State *lexerState) {
