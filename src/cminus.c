@@ -4,10 +4,22 @@
 #include <stdio.h>  /* Declares I/O functions and EOF const.  */
 #include <string.h>  /* Declares functions operating on strings.  */
 #include "cminus.h" /* Declares functions to be used by Lexer */
-#include "data/symbol.h" /* Declares functions on Symbol structure */
 
 #define	END_OF_ARRAY ('\0')
 #define EXTRA_BUFFER_CAPACITY 64
+
+/** VARIABLES **/
+
+static struct State* state;
+
+/** FUNCTIONS **/
+
+void yyerror(const char* msg) {
+	struct State* s = getState();
+	// printf("\nERRO L%i, Token: [%s]: %s\n", s->currentLine, s->tokens->last->lexeme, msg);
+	// printTokens(s->tokens);
+    fprintf(stderr, "%s\n", msg);
+}
 
 struct State *initState() {
 	struct State *state = malloc(sizeof(struct State));
@@ -16,6 +28,14 @@ struct State *initState() {
 	// file has at least one line
 	state->currentLine = 1;
 	return state;
+}
+
+struct State *getState() {
+	return state;
+}
+
+void setState(struct State *newState) {
+	state = newState;
 }
 
 char *appendChar(char* buffer, int *length, int *capacity, char c) {
@@ -30,14 +50,6 @@ char *appendChar(char* buffer, int *length, int *capacity, char c) {
 	(*length)++;
 	buffer[*length] = '\0'; // Make sure string ends in '\0'
 	return buffer;
-}
-
-char *copyLexeme(char *from, int lexemeLength) {
-	int length = lexemeLength + 1;
-	char *lexeme = malloc( length * sizeof(char));
-	// This should copy the string and NULL terminate it
-	strlcpy(lexeme, from, length);
-	return lexeme;
 }
 
 int countLineBreaks(const char *sequence) {
@@ -61,64 +73,49 @@ void increaseCurrentLine(struct State *state, int count) {
 	state->currentLine += count;
 }
 
-bool shouldInsertIntoSymbolTable(const enum TokenType type) {
-	return type == ID;
-}
-
-void insertIntoState(char *lexeme, enum TokenType type, struct State *state) {
+void insertIntoState(void *lexeme, int type, struct State *state) {
 	if (state == NULL) {
 		return;
 	}
-	struct Symbol * symbol = NULL;
-	if (shouldInsertIntoSymbolTable(type)) {
-		symbol = searchOrInsertSymbol(state->symbolTable, lexeme);
-	}
-	struct TokenList * tokens = insertToken(state->tokens, lexeme, type, state->currentLine, symbol);
+	struct TokenList * tokens = insertToken(state->tokens, lexeme, type, state->currentLine);
 	if (state->tokens == NULL) {
 		state->tokens = tokens;
 	}
-	if(state->symbolTable == NULL && symbol != NULL) {
-		state->symbolTable = symbol;
+	if(state->symbolTable == NULL) {
+		//state->symbolTable = symbol;
 	}
 }
 
-void insertGeneric(void *lexeme, enum TokenType type, struct State *state) {
-	if (state == NULL) {
-		return;
-	}
+void insertAsText(char *text, int length, int type, struct State *state) {
+	char* lexeme = strndup(text, length);
 	insertIntoState(lexeme, type, state);
 }
 
-void insertAsText(char *text, int length, enum TokenType type, struct State *state) {
-	char* lexeme = copyLexeme(text, length);	
-	insertGeneric(lexeme, type, state);
-}
-
-void insertAsInt(char *text, int length, enum TokenType type, struct State *state) {
-	char* lexeme = copyLexeme(text, length);	
+void insertAsInt(char *text, int length, int type, struct State *state) {
+	char* lexeme = strndup(text, length);
 	// Right now, I'm not checking for errors with this conversion
 	const long int num = strtol(lexeme, NULL, 10);
 	long int *numPtr = malloc(sizeof(long int));
 	*numPtr = num;
 
-	insertGeneric(numPtr, type, state);
+	insertIntoState(numPtr, type, state);
 }
 
 void insertLineBreak(struct State *state) {
 	char *lexeme = "\n";
 	increaseCurrentLine(state, 1);
-	insertAsText(lexeme, 1, WHITESPACE, state);
+	insertAsText(lexeme, 1, 1000, state);
 }
 
 void insertWhitespace(char *text, int length, struct State *state) {
-	int count = countLineBreaks(copyLexeme(text, length));
+	int count = countLineBreaks(strndup(text, length));
 	increaseCurrentLine(state, count);
-	insertAsText(text, length, WHITESPACE, state);
+	insertAsText(text, length, 1000, state);
 }
 
-void skipComment(char *startComment, int startCommentLength, int input(), struct State *state) {
+char *skipComment(char *startComment, int startCommentLength, int input(), struct State *state) {
 	if (state == NULL) {
-		return;
+		return NULL;
 	}
 	// Initializing comment string
 	int initialCapacityMultiplier = (startCommentLength / EXTRA_BUFFER_CAPACITY ) + 1;
@@ -146,14 +143,14 @@ void skipComment(char *startComment, int startCommentLength, int input(), struct
 			}
 			while ( c == '*');
 			if ( c == '/' ) {
-				insertAsText(comment, length, COMMENT, state);
-				break; /* found the end */
+				insertAsText(comment, length, -1, state);
+				return comment; /* found the end */
 			}
 		}
 
 		if ( c == EOF || c == END_OF_ARRAY ) {
-			insertAsText(comment, length, ERROR, state);
-			break;
+			insertAsText(comment, length, -1, state);
+			return comment;
 		}
 	}
 }

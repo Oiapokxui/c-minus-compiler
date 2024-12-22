@@ -5,11 +5,10 @@
 /* Will make `yytext` return a char pointer */
 %pointer
 %{
-#include "cminus.h" // Declares functions to be used by Lexer
-#include "token.h" // Declares Tokens and TokenTypes
 #include <stdbool.h> // Declares boolean type
+#include "cminus.h"
+#include "syntax.tab.h"
 
-struct State *lexerState;
 %}
 
 digito [0-9]
@@ -29,9 +28,16 @@ LE <=
 EQ ==
 NE !=
 SUMOP [+-]
-MULTOP [\*]
+MULTOP [\*/]
 RELOP {GT}|{LT}|{GE}|{LE}|{EQ}|{NE}
-SPECIAL_CHARS [/;,()[\]{}=]
+OPEN_PAREN [\(]
+CLOSE_PAREN [)]
+SEP_COMMA ,
+OPEN_BRACE \{
+CLOSE_BRACE \}
+OPEN_BRACKET \[
+CLOSE_BRACKET \]
+SPECIAL_CHARS [/;=]
 IF if
 ELSE else
 WHILE while
@@ -41,35 +47,127 @@ TYPE_INT int
 
 %%
 
-{WHITESPACE} { /* return WHITESPACE; */ }
-{RELOP} { return RELOP; }
-{MULTOP} { return MULTOP;  }
-{SPECIAL_CHARS} { return SPECIAL; }
-{IF} { return IF; }
-{ELSE} { return ELSE; }
-{WHILE} { return WHILE; }
-{RETURN} { return RETURN; }
-{TYPE_INT} { return TYPEDEF: }
-{TYPE_VOID} { return TYPEDEF: }
-{BEGIN_COMMENT}  { return COMMENT; }
-{ID} { return ID; }
-{NUM} { return NUM; }
-. { return ERROR; }
+{WHITESPACE} {
+	insertWhitespace(yytext, yyleng, getState());
+}
+{RELOP} { 
+//	printf("\nLENDO RELOP: %s\n", yytext);
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1234, getState());
+	return RELOP; 
+}
+{SUMOP} {
+//	printf("\nLENDO SOMA: %s\n", yytext);
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1234, getState());
+	return SUMOP;
+}
+{MULTOP} {
+//	printf("\nLENDO MULTIPLICACAO: %s\n", yytext);
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1234, getState());
+	return MULTOP;
+}
+{SPECIAL_CHARS} {
+//	printf("\nLENDO CHAR SPECIAL: %s\n", yytext);
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1234, getState());
+    return yytext[0];
+}
+{OPEN_PAREN} {
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1234, getState());
+	return '(';
+}
+{CLOSE_PAREN} {
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1234, getState());
+	return ')';
+}
+{OPEN_BRACKET} {
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1234, getState());
+	return '[';
+}
+{CLOSE_BRACKET} {
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1234, getState());
+	return ']';
+}
+{OPEN_BRACE} {
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1234, getState());
+	return '{';
+}
+{CLOSE_BRACE} {
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1234, getState());
+	return '}';
+}
+{SEP_COMMA} {
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1234, getState());
+	return ',';
+}
+{IF} {
+//	printf("\nLENDO IF: %s\n", yytext);
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1234, getState());
+	return IF;
+}
+{ELSE} {
+//	printf("\nLENDO ELSE: %s\n", yytext);
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1234, getState());
+	return ELSE;
+}
+{WHILE} {
+//	printf("\nLENDO WHILE: %s\n", yytext);
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1234, getState());
+	return WHILE;
+}
+{RETURN} {
+//	printf("\nLENDO RETURN: %s\n", yytext);
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1234, getState());
+	return RETURN;
+}
+{TYPE_INT} {
+//	printf("\nLENDO INT: %s\n", yytext);
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1234, getState());
+	return TYPE_INT;
+}
+{TYPE_VOID} {
+//	printf("\nLENDO VOID: %s\n", yytext);
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1001, getState());
+	return TYPE_VOID;
+}
+{BEGIN_COMMENT}  {
+    char * comment = skipComment(yytext, yyleng, input, getState());
+//    printf("\nLENDO COMENTARIO: %s\n", comment);
+    yylval.text = comment;
+    insertAsText(yytext, yyleng, 1000, getState());
+}
+{ID} {
+//	printf("\nLENDO ID: %s\n", yytext);
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1001, getState());
+	return ID;
+}
+{NUM} {
+//	printf("\nLENDO NUMERO: %s\n", yytext);
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1234, getState());
+	return NUM;
+}
+. {
+//	printf("\nLENDO ERRO: %s\n", yytext);
+	yylval.text = strdup(yytext);
+    insertAsText(yytext, yyleng, 1234, getState());
+	return *yytext;
+}
 
 %%
-
-void printStateData(struct State *lexerState) {
-    printf("*****************\nLista de tokens:\n");
-	printTokens(lexerState->tokens);
-    printf("\n*****************\n");
-    printf("*****************\nTabela de simbolos:\n");
-    printSymbolTable(lexerState->symbolTable);
-    printf("\n*****************\n");
-	printf("\n");
-}
-
-int main(int argCount, char *argVector[]) {
-    lexerState = initState();
-	yylex();
-    printStateData(lexerState);
-}

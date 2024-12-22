@@ -11,18 +11,18 @@ struct TokenList * allocTokenList(struct Token *first) {
 	ptr->last = first;
 	return ptr;
 }
-struct Token * allocToken(void *lexeme, enum TokenType type, int currentLine, struct Symbol *symbol) {
+
+struct Token * allocToken(void *lexeme, int type, int currentLine) {
 	struct Token * ptr = malloc(sizeof(struct Token));
 	ptr->lexeme = lexeme;
 	ptr->line = currentLine;
-	ptr->attribute = symbol;
 	ptr->type = type;
 	ptr->next = NULL;
 	return ptr;
 }
 
-struct TokenList *insertToken(struct TokenList *list, void *lexeme, enum TokenType type, int currentLine, struct Symbol *symbol) {
-	struct Token *next = allocToken(lexeme, type, currentLine, symbol);
+struct TokenList *insertToken(struct TokenList *list, void *lexeme, int type, int currentLine) {
+	struct Token *next = allocToken(lexeme, type, currentLine);
 	if (list == NULL) {
 		return allocTokenList(next);
 	}
@@ -36,12 +36,7 @@ void printToken(struct Token *token) {
 		return;
 	}
 	printf("[");
-	if (token->type == NUM) {
-		printf("%i", *(int *)token->lexeme);
-	}
-	else {
-		printf("%s", (char *) token->lexeme);
-	}
+	printf("%s", (char *) token->lexeme);
 	printf(" line: %i type: %i] -> ", token->line, token->type);
 	printToken(token->next);
 }

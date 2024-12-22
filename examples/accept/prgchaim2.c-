@@ -1,0 +1,21 @@
+void imprime(int i) {
+i= i +1;
+}
+
+void main(void)
+{
+   int i;
+   int j;
+   int n;
+   n = 10;
+   i = 0;
+   while (j < n)
+   {
+      if (i != 0)
+         {
+          imprime(i);
+         }
+      j=j+1;
+   }
+
+ }

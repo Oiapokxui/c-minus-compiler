@@ -1,0 +1,33 @@
+/* Este programa insere x entre v[k-1] e v[k]
+// no vetor v[0..n-1]. O programa supõe apenas que
+// 0 <= k < n.
+*/
+int k;
+int x;
+int n;
+int v[13];
+
+void  main (void)
+{
+   int j;
+   k = 2;
+   x =1;
+   n =4;
+   j = 0;
+   while(j < 13)
+     {
+	v[j] = j;
+     j = j + 1;
+     }
+   j = n;
+   while (j > k) {
+ v[j] = v[j-1];
+j = j -1;
+}
+   v[k] = x;
+   j=0;
+   while(j < n+1)
+     {
+	j = j +1;;
+     }
+}

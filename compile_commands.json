@@ -1,0 +1,66 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-foptimize-sibling-calls",
+      "-g",
+      "-I",
+      "src",
+      "-c",
+      "-o",
+      "bin/lex.yy.o",
+      "bin/lex.yy.c"
+    ],
+    "directory": "/Users/enrique.silva/Documents/USP/10per/compiladores/ep1",
+    "file": "/Users/enrique.silva/Documents/USP/10per/compiladores/ep1/bin/lex.yy.c",
+    "output": "/Users/enrique.silva/Documents/USP/10per/compiladores/ep1/bin/lex.yy.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-foptimize-sibling-calls",
+      "-g",
+      "-I",
+      "src",
+      "-c",
+      "-o",
+      "bin/token.o",
+      "src/data/token.c"
+    ],
+    "directory": "/Users/enrique.silva/Documents/USP/10per/compiladores/ep1",
+    "file": "/Users/enrique.silva/Documents/USP/10per/compiladores/ep1/src/data/token.c",
+    "output": "/Users/enrique.silva/Documents/USP/10per/compiladores/ep1/bin/token.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-foptimize-sibling-calls",
+      "-g",
+      "-I",
+      "src",
+      "-c",
+      "-o",
+      "bin/symbol.o",
+      "src/data/symbol.c"
+    ],
+    "directory": "/Users/enrique.silva/Documents/USP/10per/compiladores/ep1",
+    "file": "/Users/enrique.silva/Documents/USP/10per/compiladores/ep1/src/data/symbol.c",
+    "output": "/Users/enrique.silva/Documents/USP/10per/compiladores/ep1/bin/symbol.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-foptimize-sibling-calls",
+      "-g",
+      "-I",
+      "src",
+      "-c",
+      "-o",
+      "bin/cminus.o",
+      "src/cminus.c"
+    ],
+    "directory": "/Users/enrique.silva/Documents/USP/10per/compiladores/ep1",
+    "file": "/Users/enrique.silva/Documents/USP/10per/compiladores/ep1/src/cminus.c",
+    "output": "/Users/enrique.silva/Documents/USP/10per/compiladores/ep1/bin/cminus.o"
+  }
+]
