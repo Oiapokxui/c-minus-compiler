@@ -4,6 +4,7 @@
 #include <stdio.h>  /* Declares I/O functions and EOF const.  */
 #include <string.h>  /* Declares functions operating on strings.  */
 #include "cminus.h" /* Declares functions to be used by Lexer */
+#include "data/symbol.h"
 
 #define	END_OF_ARRAY ('\0')
 #define EXTRA_BUFFER_CAPACITY 64
@@ -13,20 +14,13 @@
 static struct State* state;
 
 /** FUNCTIONS **/
-
-void yyerror(const char* msg) {
-	struct State* s = getState();
-	// printf("\nERRO L%i, Token: [%s]: %s\n", s->currentLine, s->tokens->last->lexeme, msg);
-	// printTokens(s->tokens);
-    fprintf(stderr, "%s\n", msg);
-}
-
 struct State *initState() {
 	struct State *state = malloc(sizeof(struct State));
-	state->symbolTable = NULL;
+	state->symbolTable = createSymbolTable();
 	state->tokens = NULL;
 	// file has at least one line
 	state->currentLine = 1;
+	state->errors = 0;
 	return state;
 }
 

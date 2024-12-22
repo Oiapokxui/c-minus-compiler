@@ -8,3 +8,4 @@
 void createVariable(char *id, struct State *state);
 void createArrayVariable(char *id, int length, struct State *state);
 void validateVariableType(char *type, char *id, struct State *state);
+void validateSymbolExistence(char *id, struct State *state);

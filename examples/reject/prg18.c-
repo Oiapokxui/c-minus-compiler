@@ -1,0 +1,11 @@
+int paramsIncorretos(int g, void h, void i) {}
+
+void main(void) {
+ int a;
+ int a;
+ void b;
+ void c[1];
+ void c[];
+
+ d = d + 1;
+}

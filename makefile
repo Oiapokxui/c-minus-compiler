@@ -20,10 +20,10 @@ LEX_SRC = ${SRC_DIR}/lexer/lexer.l
 LEX_CXX_SRC = lex.yy.c
 
 # Arquivo YACC que vai ser processado pelo BISON
-YACC_SRC = ${SRC_DIR}/syntax/syntax.y
+YACC_SRC = ${SRC_DIR}/syntax/parser.y
 #
 # Arquivo fonte gerado pelo Bison
-YACC_CXX_SRC = syntax.tab.c
+YACC_CXX_SRC = parser.tab.c
 
 all: clean build run
 
@@ -33,7 +33,7 @@ clean-build: clean build
 build: $(TARGET)
 
 # Regra para compilar o executável
-$(TARGET): ${BIN_DIR}/syntax.tab.o ${BIN_DIR}/lex.yy.o ${BIN_DIR}/token.o ${BIN_DIR}/symbol.o ${BIN_DIR}/cminus.o ${BIN_DIR}/syntax.o
+$(TARGET): ${BIN_DIR}/parser.tab.o ${BIN_DIR}/lex.yy.o ${BIN_DIR}/token.o ${BIN_DIR}/symbol.o ${BIN_DIR}/cminus.o ${BIN_DIR}/syntax.o ${BIN_DIR}/errors.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 # Regra para gerar o código-fonte do lexer em C a partir do Flex
@@ -51,21 +51,24 @@ ${BIN_DIR}/symbol.o: src/data/symbol.c
 ${BIN_DIR}/token.o: src/data/token.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-${BIN_DIR}/syntax.o: src/syntax/syntax.c
+${BIN_DIR}/cminus.o: src/cminus.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-${BIN_DIR}/cminus.o: src/cminus.c
+${BIN_DIR}/errors.o: src/error/error.c
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+${BIN_DIR}/syntax.o: src/syntax/syntax.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 ${BIN_DIR}/lex.yy.o: ${BIN_DIR}/$(LEX_CXX_SRC)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-${BIN_DIR}/syntax.tab.o: ${BIN_DIR}/$(YACC_CXX_SRC)
+${BIN_DIR}/parser.tab.o: ${BIN_DIR}/$(YACC_CXX_SRC)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 # Regra para executar o binário
 run: $(TARGET)
-	./$(TARGET) < examples/prg1.c-
+	./$(TARGET) < examples/reject/prg18.c-
 
 # Limpeza dos arquivos gerados
 clean:

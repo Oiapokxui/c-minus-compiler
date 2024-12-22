@@ -7,7 +7,7 @@
 %{
 #include <stdbool.h> // Declares boolean type
 #include "cminus.h"
-#include "syntax.tab.h"
+#include "parser.tab.h"
 
 %}
 

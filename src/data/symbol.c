@@ -71,7 +71,7 @@ uint64_t hash(char *key) {
 }
 
 struct TableEntry *_probe(char *key, int index, int capacity, struct TableEntry **entries) {
-	while (entries != NULL && entries[index]->id != NULL) {
+	while (entries != NULL && entries[index] != NULL && entries[index]->id != NULL) {
         if (strcmp(key, entries[index]->id) == 0) {
             // Found key, return value.
             return entries[index];
