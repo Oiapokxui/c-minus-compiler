@@ -1,6 +1,7 @@
 #pragma once
 #include "data/token.h"
 #include "data/symbol.h"
+#include "data/expression.h"
 
 struct State {
     struct SymbolTable *symbolTable;

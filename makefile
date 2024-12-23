@@ -19,8 +19,11 @@ LEX_SRC = ${SRC_DIR}/lexer/lexer.l
 # Arquivo fonte gerado pelo Flex
 LEX_CXX_SRC = lex.yy.c
 
+# Interpretador BISON
+BISON = /opt/homebrew/opt/bison/bin/bison
+
 # Arquivo YACC que vai ser processado pelo BISON
-YACC_SRC = ${SRC_DIR}/syntax/parser.y
+YACC_SRC = ${SRC_DIR}/parser/parser.y
 #
 # Arquivo fonte gerado pelo Bison
 YACC_CXX_SRC = parser.tab.c
@@ -33,7 +36,7 @@ clean-build: clean build
 build: $(TARGET)
 
 # Regra para compilar o executável
-$(TARGET): ${BIN_DIR}/parser.tab.o ${BIN_DIR}/lex.yy.o ${BIN_DIR}/token.o ${BIN_DIR}/symbol.o ${BIN_DIR}/cminus.o ${BIN_DIR}/syntax.o ${BIN_DIR}/errors.o
+$(TARGET): ${BIN_DIR}/parser.tab.o ${BIN_DIR}/lex.yy.o ${BIN_DIR}/token.o ${BIN_DIR}/symbol.o ${BIN_DIR}/cminus.o ${BIN_DIR}/syntax.o ${BIN_DIR}/errors.o ${BIN_DIR}/expression.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 # Regra para gerar o código-fonte do lexer em C a partir do Flex
@@ -42,7 +45,7 @@ ${BIN_DIR}/$(LEX_CXX_SRC):
 
 # Regra para gerar o código-fonte do parser em C a partir do Bison
 ${BIN_DIR}/$(YACC_CXX_SRC):
-	bison -o $@ -v --debug -dy $(YACC_SRC)
+	$(BISON) -o $@ -v --debug -dy $(YACC_SRC)
 
 # Regras para compilar os arquivos objeto
 ${BIN_DIR}/symbol.o: src/data/symbol.c
@@ -55,6 +58,9 @@ ${BIN_DIR}/cminus.o: src/cminus.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 ${BIN_DIR}/errors.o: src/error/error.c
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+${BIN_DIR}/expression.o: src/data/expression.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 ${BIN_DIR}/syntax.o: src/syntax/syntax.c

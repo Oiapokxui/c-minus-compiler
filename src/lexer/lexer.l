@@ -8,6 +8,7 @@
 #include <stdbool.h> // Declares boolean type
 #include "cminus.h"
 #include "parser.tab.h"
+#include "parser/parser.h"
 
 %}
 
@@ -51,25 +52,21 @@ TYPE_INT int
 	insertWhitespace(yytext, yyleng, getState());
 }
 {RELOP} { 
-//	printf("\nLENDO RELOP: %s\n", yytext);
 	yylval.text = strdup(yytext);
     insertAsText(yytext, yyleng, 1234, getState());
 	return RELOP; 
 }
 {SUMOP} {
-//	printf("\nLENDO SOMA: %s\n", yytext);
 	yylval.text = strdup(yytext);
     insertAsText(yytext, yyleng, 1234, getState());
 	return SUMOP;
 }
 {MULTOP} {
-//	printf("\nLENDO MULTIPLICACAO: %s\n", yytext);
 	yylval.text = strdup(yytext);
     insertAsText(yytext, yyleng, 1234, getState());
 	return MULTOP;
 }
 {SPECIAL_CHARS} {
-//	printf("\nLENDO CHAR SPECIAL: %s\n", yytext);
 	yylval.text = strdup(yytext);
     insertAsText(yytext, yyleng, 1234, getState());
     return yytext[0];
@@ -110,61 +107,51 @@ TYPE_INT int
 	return ',';
 }
 {IF} {
-//	printf("\nLENDO IF: %s\n", yytext);
 	yylval.text = strdup(yytext);
     insertAsText(yytext, yyleng, 1234, getState());
 	return IF;
 }
 {ELSE} {
-//	printf("\nLENDO ELSE: %s\n", yytext);
 	yylval.text = strdup(yytext);
     insertAsText(yytext, yyleng, 1234, getState());
 	return ELSE;
 }
 {WHILE} {
-//	printf("\nLENDO WHILE: %s\n", yytext);
 	yylval.text = strdup(yytext);
     insertAsText(yytext, yyleng, 1234, getState());
 	return WHILE;
 }
 {RETURN} {
-//	printf("\nLENDO RETURN: %s\n", yytext);
 	yylval.text = strdup(yytext);
     insertAsText(yytext, yyleng, 1234, getState());
 	return RETURN;
 }
 {TYPE_INT} {
-//	printf("\nLENDO INT: %s\n", yytext);
 	yylval.text = strdup(yytext);
     insertAsText(yytext, yyleng, 1234, getState());
 	return TYPE_INT;
 }
 {TYPE_VOID} {
-//	printf("\nLENDO VOID: %s\n", yytext);
 	yylval.text = strdup(yytext);
     insertAsText(yytext, yyleng, 1001, getState());
 	return TYPE_VOID;
 }
 {BEGIN_COMMENT}  {
     char * comment = skipComment(yytext, yyleng, input, getState());
-//    printf("\nLENDO COMENTARIO: %s\n", comment);
     yylval.text = comment;
     insertAsText(yytext, yyleng, 1000, getState());
 }
 {ID} {
-//	printf("\nLENDO ID: %s\n", yytext);
 	yylval.text = strdup(yytext);
     insertAsText(yytext, yyleng, 1001, getState());
 	return ID;
 }
 {NUM} {
-//	printf("\nLENDO NUMERO: %s\n", yytext);
 	yylval.text = strdup(yytext);
     insertAsText(yytext, yyleng, 1234, getState());
 	return NUM;
 }
 . {
-//	printf("\nLENDO ERRO: %s\n", yytext);
 	yylval.text = strdup(yytext);
     insertAsText(yytext, yyleng, 1234, getState());
 	return *yytext;

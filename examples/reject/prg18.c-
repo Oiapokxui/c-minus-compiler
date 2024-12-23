@@ -1,3 +1,7 @@
+void voidavel(void) {
+    return;
+}
+int paramsIncorretos(int g, int h, int i) {}
 int paramsIncorretos(int g, void h, void i) {}
 
 void main(void) {
@@ -6,6 +10,11 @@ void main(void) {
  void b;
  void c[1];
  void c[];
+ int e;
+ e = 1;
 
+ a();
+ paramsIncorretos(1, 2, 3, 4);
  d = d + 1;
+ e = e * voidavel();
 }

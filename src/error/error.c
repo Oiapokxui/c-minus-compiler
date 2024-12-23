@@ -14,10 +14,31 @@ void genericError(char *message, struct State *state) {
 	increaseErrors(state);
 }
 
-void symbolUsageBeforeDeclaration(char * id, struct State *state) {
+void symbolUsageBeforeDeclarationError(char * id, struct State *state) {
   	fprintf(
       stderr,
       "L%i: Simbolo `%s` esta sendo usado antes de sua declaracao.\n",
+      state->currentLine,
+      id
+	);
+	increaseErrors(state);
+}
+
+void symbolHasNotIntegerArrayType(char * id, struct State *state) {
+  	fprintf(
+      stderr,
+      // TODO: melhorar essa msg de erro
+      "L%i: Simbolo `%s` nao eh um array mas esta sendo acessado como um.\n",
+      state->currentLine,
+      id
+	);
+	increaseErrors(state);
+}
+
+void functionNameWithoutCall(char * id, struct State *state) {
+  	fprintf(
+      stderr,
+      "L%i: Simbolo `%s` eh um funcao mas nao eh sucedido por sua ativacao.\n",
       state->currentLine,
       id
 	);
@@ -29,19 +50,64 @@ void symbolAlreadyDeclared(char * id, struct State *state) {
 	increaseErrors(state);
 }
 
-void variableCreationFailedError(char * id, struct State *state) {
+void symbolCreationFailedError(char * id, struct State *state) {
   	fprintf(stderr, "Erro ao inserir `%s` na tabela de simbolos\n", id);
 	increaseErrors(state);
 };
 
-
 void variableTypeIsInvalidError(char * type, char *id, struct State *state) {
 	fprintf(
 		stderr,
-	    "L%i: Tipo `%s` inesperado para a variavel `%s`. Tipos aceitos: int\n",
+	    "L%i: Tipo `%s` inesperado para a variavel `%s`. Tipos aceitos: `int`.\n",
 	    state->currentLine,
 	    type,
 	    id
 	);
 	increaseErrors(state);
 };
+
+void functionReturnTypeIsInvalid(char * type, char *id, struct State *state) {
+  	fprintf(
+  		stderr,
+  		"L%i: Tipo `%s` inesperado para a funcao `%s`. Tipos aceitos: `int` ou `void`.\n",
+  		state->currentLine,
+  		type,
+  		id
+	);
+	increaseErrors(state);
+}
+
+void symbolTypeMismatchedError(char * id, enum SymbolType type, struct State *state) {
+  	fprintf(
+      stderr,
+      "L%i: Simbolo `%s` esta sendo chamado como funcao mas seu tipo é %s.\n",
+      state->currentLine,
+      id,
+      symbolTypeToString(type)
+	);
+	increaseErrors(state);
+}
+
+void intExpressionTypeExpectedError(char * expr, enum ExpressionType type, char *contextOperation, struct State *state) {
+  	fprintf(
+      stderr,
+      "L%i: Expressao `%s` de tipo de retorno `%s` nao pode ser argumento da operacao `%s`.\n",
+      state->currentLine,
+      expr,
+      expressionTypeToString(type),
+      contextOperation
+	);
+	increaseErrors(state);
+}
+
+void functionArityMismatchedError(char * id, int obtainedLength, int expectedLength, struct State *state) {
+  	fprintf(
+      stderr,
+      "L%i: Chamada para `%s` contem aridade `%i` diferente da esperada `%i`.\n",
+      state->currentLine,
+      id,
+      obtainedLength,
+      expectedLength
+	);
+	increaseErrors(state);
+}

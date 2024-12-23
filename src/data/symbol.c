@@ -5,10 +5,23 @@
 #include <string.h>  /* Declares functions operating on strings.  */
 #include "symbol.h" /* Declares functions to be used by Lexer */
 
-struct TableEntry * allocEntry(char * symbolPtr, enum SymbolType type, union Symbol value) {
+enum ReturnType stringToReturnType(char *string) {
+	if (string != NULL && strcmp(string, "int") != 0) return RET_VOID;
+	return RET_INT;
+}
+
+char *symbolTypeToString(enum SymbolType type) {
+	switch (type) {
+		case FUNCTION: return "funcao";
+		case VARIABLE: return "variavel";
+		case ARRAY_VARIABLE: return "array";
+		default: return "???";
+	}
+}
+
+struct TableEntry * allocEntry(char * symbolPtr, struct Symbol value) {
 	struct TableEntry * ptr = malloc(sizeof(struct TableEntry));
 	ptr->id = symbolPtr;
-	ptr->type = type;
 	ptr->value = value;
 	return ptr;
 }
@@ -18,10 +31,10 @@ struct TableEntry *updateVariableSymbol(char *id, int value, struct SymbolTable 
     if (entry == NULL) {
 		return NULL;
     }
-    if (entry->type != SINGLE) {
+    if (entry->value.type != VARIABLE) {
       return NULL;
     }
-    (entry->value.variable.value) = value;
+    (entry->value.it.variable.value) = value;
     return entry;
 }
 
@@ -30,13 +43,13 @@ struct TableEntry *createVariableSymbol(char *name, struct SymbolTable *symbolTa
         return NULL;
  	}
 	;
-	struct SingleVariableSymbol *symbol = malloc(sizeof(struct SingleVariableSymbol));
-    if (symbol == NULL) {
+	struct SingleVariableSymbol *variable = malloc(sizeof(struct SingleVariableSymbol));
+    if (variable == NULL) {
 		return NULL;
     }
-	symbol->name = name;
-	union Symbol unionSymbol = (union Symbol) *symbol;
-    struct TableEntry *tableEntry = insertSymbol(name, SINGLE, unionSymbol, symbolTable);
+	variable->name = name;
+	struct Symbol symbol = (struct Symbol) { .type = VARIABLE, .it = { .variable = *variable } };
+    struct TableEntry *tableEntry = insertSymbol(name, symbol, symbolTable);
 	return tableEntry;
 }
 
@@ -48,14 +61,41 @@ struct TableEntry *createArraySymbol(char *name, int size, struct SymbolTable *s
    	if (intArray == NULL) {
         return NULL;
 	}
-	union Symbol unionSymbol = (union Symbol) {
-            .array = {
-                .name = name,
-                .size = size,
-                .value = intArray
+	struct Symbol symbol = (struct Symbol) {
+		.type = ARRAY_VARIABLE,
+		.it = {
+			.array = {
+				.name = name,
+				.size = size,
+				.value = intArray
+		}
 	} };
 
-    return insertSymbol(name, ARRAY, unionSymbol, symbolTable);
+    return insertSymbol(name, symbol, symbolTable);
+}
+
+struct TableEntry *createFunctionSymbol(char *type, char *id, int arity, struct Symbol *params, struct SymbolTable *symbolTable) {
+	if (symbolTable == NULL) {
+        return NULL;
+  	}
+
+	enum ReturnType returnType = stringToReturnType(type);
+
+	struct Symbol symbol = (struct Symbol) {
+		.type = FUNCTION,
+		.it = {
+			.function = {
+				.name = id,
+				.arity = arity,
+				.returns = returnType,
+		}
+	} };
+
+	if (arity > 0 && params != NULL) {
+		symbol.it.function.params = params;
+	}
+
+    return insertSymbol(id, symbol, symbolTable);
 }
 
 // Return 64-bit FNV-1a hash for key (NUL-terminated). See description:
@@ -157,7 +197,7 @@ struct TableEntry *getSymbol(char *key, struct SymbolTable *table) {
 	return _probe(key, index, table->capacity, table->entries);
 }
 
-struct TableEntry *insertSymbol(char *id, enum SymbolType type, union Symbol symbol, struct SymbolTable *table) {
+struct TableEntry *insertSymbol(char *id, struct Symbol symbol, struct SymbolTable *table) {
 	if (table == NULL || table->entries == NULL) {
 		return NULL;
 	}
@@ -171,7 +211,7 @@ struct TableEntry *insertSymbol(char *id, enum SymbolType type, union Symbol sym
 
     uint64_t id_hashed = hash(id);
     size_t index = id_hashed % (table->capacity - 1);
-	struct TableEntry * entry = allocEntry(id, type, symbol);
+	struct TableEntry * entry = allocEntry(id, symbol);
 
 	return _insert(entry, index, table);
 }

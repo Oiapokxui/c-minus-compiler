@@ -2,22 +2,24 @@
 #include <stdio.h> // Declares functions to be used by Lexer
 #include <stdbool.h> // Declares boolean type
 #include <string.h>
-#include "cminus.h" // Declares functions to be used by Lexer
-#include "syntax/syntax.h" // Declares functions to be used by Lexer
+#include "parser/parser.h"
+#include "syntax/syntax.h"
 
 int yylex(); // nao compila sem essa linha
 
 %}
 
-%union {
-	char *text;
-	int num;
-}
+// WIll allow to define custom union type in a separate file
+%define api.value.type { union YYSTYPE }
 
-%type <text> var sum_expr var_declaration type_spec simple_expr term factor call
-%type <num> expr
+%type <text> var_declaration type_spec
+%type <expression> expr var factor call term simple_expr sum_expr
+%type <symbol> param
+%type <symbolArray> params params_list
+%type <expressionArray> args arg_list
 
 %token <text> ID
+%token <text> NUM
 %token <text> IF
 %token <text> ELSE
 %token <text> WHILE
@@ -30,7 +32,6 @@ int yylex(); // nao compila sem essa linha
 %token <text> COMMENT
 %token <text> SPECIAL
 
-%token <num> NUM
 %%
 // grammar
 program :
@@ -47,7 +48,11 @@ declaration_list :
     };
 declaration : var_declaration | function_declaration ;
 function_declaration :
-    type_spec ID '(' params ')' compound_statement
+    type_spec ID '(' params ')' compound_statement {
+        int arity = $4.length;
+        struct Symbol (*data)[256] = &($4.data);
+        createFunction($1, $2, arity, data, getState());
+    }
     | type_spec error '(' params ')' compound_statement {
         fprintf(
             stderr,
@@ -56,12 +61,11 @@ function_declaration :
         );
     }
 ;
-// TODO: Verificar que variavel nao tem tipo void
 var_declaration :
     type_spec ID ';' {
         $$ = $1;
         struct State *state = getState();
-        validateVariableType($1, $2, state);
+        validateIntTypeSpec($1, $2, state);
         createVariable($2, state);
     }
     | type_spec error ';' {
@@ -83,7 +87,7 @@ var_declaration :
 	| type_spec ID '[' NUM ']' ';' {
         $$ = $1;
         struct State *state = getState();
-        validateVariableType($1, $2, state);
+        validateIntTypeSpec($1, $2, state);
         createArrayVariable($2, $4, state);
 	}
     | type_spec error '[' NUM ']' ';' {
@@ -107,7 +111,7 @@ var_declaration :
 		    stderr,
 		    "L%i: declaracao da variavel array `%s` deve ter comprimento em inteiros\n",
 		    getState()->currentLine,
-		    $1
+		    $2
 		);
 	}
     | type_spec ID '[' NUM ']' error {
@@ -122,17 +126,35 @@ var_declaration :
 ;
 type_spec : TYPE_VOID | TYPE_INT
 params :
-    params_list
-    | TYPE_VOID ;
-params_list : params_list ',' param | param ;
+    params_list {
+        $$ = $1;
+    }
+    | TYPE_VOID {
+        $$ = (struct SymbolArray) { .length = 0 };
+    };
+params_list :
+    params_list ',' param {
+        // TODO: Array is not carrying from one match to another
+        insertToSymbolArray(&($1), $3);
+        $$ = $1;
+    }
+    | param {
+        // Inserir parametro em uma lista
+        struct SymbolArray * newArray = malloc(sizeof(struct SymbolArray));
+        insertToSymbolArray(newArray, $1);
+        $$ = *newArray;
+    }
+;
 param :
     type_spec ID {
-        validateVariableType($1, $2, getState());
+        validateIntTypeSpec($1, $2, getState());
         // TOOD: IMPLEMENTAR STACK de contextos e inserir variavel no contexto certo
+        $$ = (struct Symbol) { .type = VARIABLE, .it = { .variable = { .name = $2 } } };
     }
     | type_spec ID '[' ']' {
-        validateVariableType($1, $2, getState());
+        validateIntTypeSpec($1, $2, getState());
         // TOOD: IMPLEMENTAR STACK de contextos e inserir variavel no contexto certo
+        $$ = (struct Symbol) { .type = ARRAY_VARIABLE, .it = { .array = { .name = $2 } } };
     }
     | type_spec error {
         fprintf(
@@ -204,17 +226,39 @@ expr :
             stderr,
             "L%i: Variavel `%s` deve ser atribuida de uma expressao valida\n",
             getState()->currentLine,
-            $1
+            $1.text
         );
+        $$ = (struct Expression) { .type = EXPR_ERROR, .text = $1.text };
     }
-    | simple_expr ;
+    | simple_expr {
+        $$ = $1;
+    };
 var :
     ID {
-        validateSymbolExistence($1, getState());
-        $$ = $1;
+        struct State *state = getState();
+        validateSymbolExistence($1, state);
+        validateNotFunctionSymbol($1, state);
+        struct TableEntry *entry = getSymbol($1, state->symbolTable);
+        if (entry == NULL) {
+            $$ = (struct Expression) { .type = EXPR_ERROR, .text = $1 };
+        }
+        else if (entry->value.type == ARRAY_VARIABLE) {
+            $$ = (struct Expression) { .type = EXPR_INT_ARRAY, .text = $1 };
+        }
+        else {
+            $$ = (struct Expression) { .type = EXPR_INT, .text = $1 };
+        }
     }
     | ID '[' expr ']' {
-        $$ = $1;
+        struct State *state = getState();
+        validateSymbolExistence($1, state);
+        validateNotFunctionSymbol($1, state);
+        validateIntegerArraySymbol($1, state);
+        struct TableEntry *entry = getSymbol($1, state->symbolTable);
+        if (entry == NULL) {
+            $$ = (struct Expression) { .type = EXPR_ERROR, .text = $1 };
+        }
+        $$ = (struct Expression) { .type = EXPR_INT, .text = $1 } ;
     }
     | ID '[' error ']' {
         fprintf(
@@ -223,18 +267,24 @@ var :
             getState()->currentLine,
             $1
         );
-        $$ = $1;
+        $$ = (struct Expression) { .type = EXPR_ERROR, .text = $1 };
     };
 simple_expr :
-    sum_expr RELOP sum_expr
+    sum_expr RELOP sum_expr {
+        validateIntReturnedFrom($3, $2, getState());
+    }
     | sum_expr
 ;
 sum_expr :
-    sum_expr SUMOP term
+    sum_expr SUMOP term {
+        validateIntReturnedFrom($3, $2, getState());
+    }
     | term
 ;
 term :
-    term MULTOP factor
+    term MULTOP factor {
+        validateIntReturnedFrom($3, $2, getState());
+    }
     | factor
     | factor error {
         fprintf(
@@ -246,10 +296,18 @@ term :
     }
 ;
 factor :
-    '(' expr ')'
-    | var
-    | call
-    | NUM
+    '(' expr ')' {
+        $$ = $2;
+    }
+    | var {
+        $$ = $1;
+    }
+    | call {
+        $$ = $1;
+    }
+    | NUM {
+        $$ = (struct Expression) { .type = EXPR_INT, .text = $1 };
+    }
     | '(' error ')' {
         fprintf(
             stderr,
@@ -259,7 +317,24 @@ factor :
     }
 ;
 call :
-    ID '(' args ')'
+    ID '(' args ')' {
+        struct State *state = getState();
+        validateSymbolExistence($1, state);
+        validateArgsArity($1, $3.length, state);
+
+        struct TableEntry *entry = getSymbol($1, state->symbolTable);
+        if (entry == NULL
+            || entry->value.type != FUNCTION
+        ) {
+            $$ = (struct Expression) { .type = EXPR_ERROR, .text = $1 };
+        }
+        else if (entry->value.it.function.returns == RET_VOID) {
+            $$ = (struct Expression) { .type = EXPR_VOID, .text = $1 };
+        }
+        else {
+            $$ = (struct Expression) { .type = EXPR_INT, .text = $1 };
+        }
+    }
     | ID '(' error ')' {
         fprintf(
             stderr,
@@ -267,12 +342,28 @@ call :
             getState()->currentLine,
             $1
         );
+        $$ = (struct Expression) { .type = EXPR_ERROR, .text = $1 };
     }
 ;
-args : arg_list | EMPTY ; 
+args :
+    arg_list {
+        $$ = $1;
+    }
+    | EMPTY {
+        $$ = (struct ExpressionArray) { .length = 0 };
+    }
+;
 arg_list :
-    arg_list ',' expr
-    | expr ;
+    arg_list ',' expr {
+        insertToExpressionArray(&($1), $3);
+        $$ = $1;
+    }
+    | expr {
+        struct ExpressionArray *newArray = malloc(sizeof(struct ExpressionArray));
+        insertToExpressionArray(newArray, $1);
+        $$ = *newArray;
+    }
+;
 EMPTY: /* empty */ ;
      
 %%
