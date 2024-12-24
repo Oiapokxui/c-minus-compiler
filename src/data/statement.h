@@ -8,7 +8,7 @@ struct Statement {
 	enum StatementType type;
 	union {
 		struct {
-			char * declarations[256];
+			char ** declarations;
 			struct StatementArray *statements;
 		} compound;
 	} it;
