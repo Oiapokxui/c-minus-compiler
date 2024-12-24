@@ -1,6 +1,6 @@
 #include "expression.h"
 
-char *expressionTypeToString(enum ExpressionType type) {
+char *expressionReturnTypeToString(enum ExpressionReturnType type) {
 	switch (type) {
 		case EXPR_INT: return "int";
 		case EXPR_VOID: return "void";

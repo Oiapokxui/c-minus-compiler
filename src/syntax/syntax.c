@@ -105,7 +105,7 @@ void validateIntReturnedFrom(struct Expression expression, char *contextOperatio
 		return genericError("Error generico: estado do programa esta invalido", state);
 	}
 	if (expression.type != EXPR_INT) {
-		return intExpressionTypeExpectedError(expression.text, expression.type, contextOperation, state);
+		return intExpressionReturnTypeExpectedError(expression.text, expression.returnType, contextOperation, state);
 	}
 }
 
@@ -121,6 +121,22 @@ enum LIST_ERRORS insertToExpressionArray(struct ExpressionArray *list, struct Ex
     int nextIndex = list->length;
 	if (nextIndex < 0 || nextIndex >= 256) return LIST_INDEX_OUT_OF_RANGE;
     list->data[nextIndex] = expression;
+    list->length++;
+	return OK;
+}
+
+enum LIST_ERRORS insertToStatementArray(struct StatementArray *list, struct Statement statement) {
+    int nextIndex = list->length;
+	if (nextIndex < 0 || nextIndex >= 256) return LIST_INDEX_OUT_OF_RANGE;
+    list->data[nextIndex] = statement;
+    list->length++;
+	return OK;
+}
+
+enum LIST_ERRORS insertToStringArray(struct StringArray *list, char *string) {
+    int nextIndex = list->length;
+	if (nextIndex < 0 || nextIndex >= 256) return LIST_INDEX_OUT_OF_RANGE;
+    list->data[nextIndex] = strdup(string);
     list->length++;
 	return OK;
 }

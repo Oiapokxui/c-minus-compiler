@@ -27,3 +27,5 @@ struct SingleVariableSymbol getVariable(char *id, struct State *state);
 
 enum LIST_ERRORS insertToSymbolArray(struct SymbolArray *list, struct Symbol symbol);
 enum LIST_ERRORS insertToExpressionArray(struct ExpressionArray *list, struct Expression expression);
+enum LIST_ERRORS insertToStatementArray(struct StatementArray *list, struct Statement expression);
+enum LIST_ERRORS insertToStringArray(struct StringArray *list, char *string);

@@ -17,6 +17,9 @@ int yylex(); // nao compila sem essa linha
 %type <symbol> param
 %type <symbolArray> params params_list
 %type <expressionArray> args arg_list
+%type <statementArray> statement_list
+%type <statement> compound_statement statement
+%type <stringArray> local_declarations
 
 %token <text> ID
 %token <text> NUM
@@ -45,6 +48,7 @@ declaration_list :
             "L%i: Programa nao comeca com uma definicao valida de variaveis ou funcoes.\n",
             getState()->currentLine
         );
+		YYERROR;
     };
 declaration : var_declaration | function_declaration ;
 function_declaration :
@@ -59,11 +63,12 @@ function_declaration :
             "L%i: Declaracao de funcao deve possuir um identificador valido",
             getState()->currentLine
         );
+		YYERROR;
     }
 ;
 var_declaration :
     type_spec ID ';' {
-        $$ = $1;
+        $$ = $2;
         struct State *state = getState();
         validateIntTypeSpec($1, $2, state);
         createVariable($2, state);
@@ -74,6 +79,7 @@ var_declaration :
             "L%i declaracao de variavel deve ter um identificador valido",
             getState()->currentLine
         );
+		YYERROR;
     }
     | type_spec ID error {
         fprintf(
@@ -83,9 +89,10 @@ var_declaration :
             yylval.text,
             $2
         );
+		YYERROR;
     }
 	| type_spec ID '[' NUM ']' ';' {
-        $$ = $1;
+        $$ = $2;
         struct State *state = getState();
         validateIntTypeSpec($1, $2, state);
         createArrayVariable($2, $4, state);
@@ -96,6 +103,7 @@ var_declaration :
 		    "L%i declaracao de variavel array deve ter um identificador valido\n",
 		    getState()->currentLine
 		);
+		YYERROR;
 	}
     | error ID '[' NUM ']' ';' {
 		fprintf(
@@ -104,7 +112,7 @@ var_declaration :
 		    getState()->currentLine,
 		    $2
         );
-		YYABORT;
+		YYERROR;
 	}
     | type_spec ID '[' error ']' ';' {
 		fprintf(
@@ -113,6 +121,7 @@ var_declaration :
 		    getState()->currentLine,
 		    $2
 		);
+		YYERROR;
 	}
     | type_spec ID '[' NUM ']' error {
         fprintf(
@@ -122,6 +131,7 @@ var_declaration :
             yylval.text,
             $2
         );
+		YYERROR;
     }
 ;
 type_spec : TYPE_VOID | TYPE_INT
@@ -162,6 +172,7 @@ param :
             "L%i: Parametro de funcao deve conter um identificador valido\n",
             getState()->currentLine
         );
+        YYERROR;
     }
     | type_spec error '[' ']' {
         fprintf(
@@ -169,24 +180,58 @@ param :
             "L%i: Parametro array de funcao deve conter um identificador valido\n",
             getState()->currentLine
         );
+        YYERROR;
     }
 ;
 compound_statement:
-    '{' local_declarations statement_list '}'
+    '{' local_declarations statement_list '}' {
+        $$ = (struct Statement) {
+            .type = STMNT_COMPOUND,
+            .it = {
+                .compound = {
+                    .declarations = $2.data
+                }
+            }
+        };
+    }
 ;
 local_declarations :
-    var_declaration local_declarations
-    | EMPTY ;
-statement_list :
-    statement_list statement
-    | EMPTY
+    var_declaration local_declarations {
+        insertToStringArray(&$2, $1);
+        $$ = $2;
+    }
+    | EMPTY {
+        struct StringArray *newArray = malloc(sizeof(struct StringArray));
+        $$ = *newArray;
+    }
 ;
-// TODO find a better name for *_declr
-statement : expr_statement
-          | compound_statement
-          | selection_statement
-          | itr_statement
-          | return_statement ;
+statement_list :
+    statement_list statement {
+        insertToStatementArray(&$1, $2);
+        $$ = $1;
+    }
+    | EMPTY {
+        struct StatementArray *newArray = malloc(sizeof(struct StatementArray));
+        $$ = *newArray;
+    }
+;
+statement :
+    expr_statement {
+        $$ = (struct Statement) { .type = STMNT_EXPRESSION };
+    }
+    | compound_statement {
+        $$ = (struct Statement) { .type = STMNT_COMPOUND };
+    }
+    | selection_statement {
+        $$ = (struct Statement) { .type = STMNT_BRANCHING };
+    }
+    | itr_statement {
+        $$ = (struct Statement) { .type = STMNT_ITERATION };
+    }
+    | return_statement {
+        $$ = (struct Statement) { .type = STMNT_RETURN };
+    }
+;
 expr_statement :
     expr ';'
     | expr error {
@@ -196,6 +241,7 @@ expr_statement :
             getState()->currentLine,
             yylval.text
         );
+        YYERROR;
     }
     | ';'
 ;
@@ -215,6 +261,7 @@ return_statement :
             "L%i: Statement de retorno deve conter expressao valida ou vazia\n",
             getState()->currentLine
         );
+		YYERROR;
     }
 ;
 expr :
@@ -228,7 +275,8 @@ expr :
             getState()->currentLine,
             $1.text
         );
-        $$ = (struct Expression) { .type = EXPR_ERROR, .text = $1.text };
+		YYERROR;
+        $$ = (struct Expression) { .returnType = EXPR_ERROR, .text = $1.text };
     }
     | simple_expr {
         $$ = $1;
@@ -240,13 +288,13 @@ var :
         validateNotFunctionSymbol($1, state);
         struct TableEntry *entry = getSymbol($1, state->symbolTable);
         if (entry == NULL) {
-            $$ = (struct Expression) { .type = EXPR_ERROR, .text = $1 };
+            $$ = (struct Expression) { .returnType = EXPR_ERROR, .text = $1 };
         }
         else if (entry->value.type == ARRAY_VARIABLE) {
-            $$ = (struct Expression) { .type = EXPR_INT_ARRAY, .text = $1 };
+            $$ = (struct Expression) { .returnType = EXPR_INT_ARRAY, .text = $1 };
         }
         else {
-            $$ = (struct Expression) { .type = EXPR_INT, .text = $1 };
+            $$ = (struct Expression) { .returnType = EXPR_INT, .text = $1 };
         }
     }
     | ID '[' expr ']' {
@@ -256,9 +304,9 @@ var :
         validateIntegerArraySymbol($1, state);
         struct TableEntry *entry = getSymbol($1, state->symbolTable);
         if (entry == NULL) {
-            $$ = (struct Expression) { .type = EXPR_ERROR, .text = $1 };
+            $$ = (struct Expression) { .returnType = EXPR_ERROR, .text = $1 };
         }
-        $$ = (struct Expression) { .type = EXPR_INT, .text = $1 } ;
+        $$ = (struct Expression) { .returnType = EXPR_INT, .text = $1 } ;
     }
     | ID '[' error ']' {
         fprintf(
@@ -267,7 +315,8 @@ var :
             getState()->currentLine,
             $1
         );
-        $$ = (struct Expression) { .type = EXPR_ERROR, .text = $1 };
+		YYERROR;
+        $$ = (struct Expression) { .returnType = EXPR_ERROR, .text = $1 };
     };
 simple_expr :
     sum_expr RELOP sum_expr {
@@ -293,6 +342,7 @@ term :
             getState()->currentLine,
             yylval.text
         );
+		YYERROR;
     }
 ;
 factor :
@@ -306,7 +356,7 @@ factor :
         $$ = $1;
     }
     | NUM {
-        $$ = (struct Expression) { .type = EXPR_INT, .text = $1 };
+        $$ = (struct Expression) { .returnType = EXPR_INT, .text = $1 };
     }
     | '(' error ')' {
         fprintf(
@@ -314,6 +364,7 @@ factor :
             "L%i: Expressao invalida entre parenteses.\n",
             getState()->currentLine
         );
+		YYERROR;
     }
 ;
 call :
@@ -326,13 +377,13 @@ call :
         if (entry == NULL
             || entry->value.type != FUNCTION
         ) {
-            $$ = (struct Expression) { .type = EXPR_ERROR, .text = $1 };
+            $$ = (struct Expression) { .returnType = EXPR_ERROR, .text = $1 };
         }
         else if (entry->value.it.function.returns == RET_VOID) {
-            $$ = (struct Expression) { .type = EXPR_VOID, .text = $1 };
+            $$ = (struct Expression) { .returnType = EXPR_VOID, .text = $1 };
         }
         else {
-            $$ = (struct Expression) { .type = EXPR_INT, .text = $1 };
+            $$ = (struct Expression) { .returnType = EXPR_INT, .text = $1 };
         }
     }
     | ID '(' error ')' {
@@ -342,7 +393,8 @@ call :
             getState()->currentLine,
             $1
         );
-        $$ = (struct Expression) { .type = EXPR_ERROR, .text = $1 };
+		YYERROR;
+        $$ = (struct Expression) { .returnType = EXPR_ERROR, .text = $1 };
     }
 ;
 args :

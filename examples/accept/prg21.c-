@@ -1,0 +1,13 @@
+int paramsCorretos(int g, int h, int i[]) {
+    int a;
+    int b;
+    int c;
+    int d;
+}
+
+void main(void) {
+ int a;
+ int b;
+ a = 1;
+ b = a + 1;
+}

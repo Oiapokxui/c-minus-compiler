@@ -13,4 +13,4 @@ void functionNameWithoutCall(char * id, struct State *state);
 void functionReturnTypeIsInvalid(char * type, char *id, struct State *state);
 void functionArityMismatchedError(char * id, int obtainedLength, int expectedLength, struct State *state);
 
-void intExpressionTypeExpectedError(char * expr, enum ExpressionType type, char *contextOperation, struct State *state);
+void intExpressionReturnTypeExpectedError(char * expr, enum ExpressionReturnType type, char *contextOperation, struct State *state);

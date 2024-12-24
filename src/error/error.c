@@ -88,13 +88,13 @@ void symbolTypeMismatchedError(char * id, enum SymbolType type, struct State *st
 	increaseErrors(state);
 }
 
-void intExpressionTypeExpectedError(char * expr, enum ExpressionType type, char *contextOperation, struct State *state) {
+void intExpressionReturnTypeExpectedError(char * expr, enum ExpressionReturnType type, char *contextOperation, struct State *state) {
   	fprintf(
       stderr,
       "L%i: Expressao `%s` de tipo de retorno `%s` nao pode ser argumento da operacao `%s`.\n",
       state->currentLine,
       expr,
-      expressionTypeToString(type),
+      expressionReturnTypeToString(type),
       contextOperation
 	);
 	increaseErrors(state);
