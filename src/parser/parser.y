@@ -353,18 +353,21 @@ var :
     };
 simple_expr :
     sum_expr RELOP sum_expr {
+        validateIntReturnedFrom($1, $2, getState());
         validateIntReturnedFrom($3, $2, getState());
     }
     | sum_expr
 ;
 sum_expr :
     sum_expr SUMOP term {
+        validateIntReturnedFrom($1, $2, getState());
         validateIntReturnedFrom($3, $2, getState());
     }
     | term
 ;
 term :
     term MULTOP factor {
+        validateIntReturnedFrom($1, $2, getState());
         validateIntReturnedFrom($3, $2, getState());
     }
     | factor

@@ -152,7 +152,7 @@ void validateIntReturnedFrom(struct Expression expression, char *contextOperatio
 	if (state == NULL || state->symbolTable == NULL) {
 		return genericError("Error generico: estado do programa esta invalido", state);
 	}
-	if (expression.type != EXPR_INT) {
+	if (expression.returnType != EXPR_INT) {
 		return intExpressionReturnTypeExpectedError(expression.text, expression.returnType, contextOperation, state);
 	}
 }
