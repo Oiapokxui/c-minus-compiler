@@ -92,6 +92,17 @@ void updateFunction(char *id, int arity, struct Symbol *params, struct SymbolTab
 	func.it.function.scope = functionScope;
 }
 
+struct Expression createVariableExpression(char *id, char *text, struct State *state) {
+	struct TableEntry *entry = getSymbol(id, state->symbolTable);
+	if (entry == NULL) {
+		return (struct Expression) { .returnType = EXPR_ERROR, .text = text };
+	}
+	if (entry->value.type == ARRAY_VARIABLE) {
+		return (struct Expression) { .type = EXPR_VARIABLE, .returnType = EXPR_INT_ARRAY, .text = text };
+	}
+	return (struct Expression) { .type = EXPR_VARIABLE, .returnType = EXPR_INT, .text = text };
+}
+
 void validateIntTypeSpec(char *type, char *id, struct State *state) {
 	if (strcmp("int", type) != 0) variableTypeIsInvalidError(type, id, state);
 }

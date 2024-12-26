@@ -319,16 +319,7 @@ var :
         struct State *state = getState();
         validateSymbolExistsInAnyScope($1, state);
         validateNotFunctionSymbol($1, state);
-        struct TableEntry *entry = getSymbol($1, state->symbolTable);
-        if (entry == NULL) {
-            $$ = (struct Expression) { .returnType = EXPR_ERROR, .text = $1 };
-        }
-        else if (entry->value.type == ARRAY_VARIABLE) {
-            $$ = (struct Expression) { .returnType = EXPR_INT_ARRAY, .text = $1 };
-        }
-        else {
-            $$ = (struct Expression) { .returnType = EXPR_INT, .text = $1 };
-        }
+        $$ = createVariableExpression($1, $1, state);
     }
     | ID '[' expr ']' {
         struct State *state = getState();
@@ -339,7 +330,7 @@ var :
         if (entry == NULL) {
             $$ = (struct Expression) { .returnType = EXPR_ERROR, .text = $1 };
         }
-        $$ = (struct Expression) { .returnType = EXPR_INT, .text = $1 } ;
+        $$ = (struct Expression) { .type = EXPR_VARIABLE, .returnType = EXPR_INT, .text = $1 } ;
     }
     | ID '[' error ']' {
         fprintf(
@@ -392,7 +383,7 @@ factor :
         $$ = $1;
     }
     | NUM {
-        $$ = (struct Expression) { .returnType = EXPR_INT, .text = $1 };
+        $$ = (struct Expression) { .type = EXPR_NUMBER_VALUE, .returnType = EXPR_INT, .text = $1 };
     }
     | '(' error ')' {
         fprintf(

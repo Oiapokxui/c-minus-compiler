@@ -18,6 +18,8 @@ void createFunction(char *type, char *id, int arity, struct Symbol *params, stru
 void createFunctionPartially(char *type, char *id, struct State *state);
 void updateFunction(char *id, int arity, struct Symbol *params, struct SymbolTable *functionScope, struct State *state);
 
+struct Expression createVariableExpression(char *id, char *text, struct State *state);
+
 void validateIntTypeSpec(char *type, char *id, struct State *state);
 void validateSymbolNotExistsInCurrentScope(char *id, struct State *state);
 void validateSymbolExistsInAnyScope(char *id, struct State *state);

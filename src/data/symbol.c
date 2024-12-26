@@ -170,13 +170,20 @@ static bool _expand(struct SymbolTable *table) {
 }
 
 struct TableEntry *getSymbol(char *key, struct SymbolTable *table) {
-	if (table == NULL || table->entries == NULL) {
-		return NULL;
-	}
-    uint64_t id_hashed = hash(key);
-    size_t index = id_hashed % (table->capacity - 1);
+	struct SymbolTable *currentTable = table;
+	struct TableEntry *symbolEntry = NULL;
+	while (currentTable != NULL && currentTable->entries != NULL) {
 
-	return _probe(key, index, table->capacity, table->entries);
+		uint64_t id_hashed = hash(key);
+		size_t index = id_hashed % (table->capacity - 1);
+
+		symbolEntry = _probe(key, index, currentTable->capacity, currentTable->entries);
+		if (symbolEntry != NULL) {
+			return symbolEntry;
+		}
+		currentTable = currentTable->previous;
+	}
+	return NULL;
 }
 
 struct TableEntry *insertSymbol(char *id, struct Symbol symbol, struct SymbolTable *table) {
