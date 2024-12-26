@@ -47,6 +47,7 @@ void functionNameWithoutCall(char * id, struct State *state) {
 
 void symbolAlreadyDeclared(char * id, struct State *state) {
   	fprintf(stderr, "L%i: Simbolo `%s` ja foi definido anteriormente.\n", state->currentLine, id);
+	// YYERROR;
 	increaseErrors(state);
 }
 

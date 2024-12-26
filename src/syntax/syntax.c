@@ -131,7 +131,7 @@ void validateProgramHasMainMethod(struct SymbolArray *declarations, struct State
 	}
 
 	for (int i = 0; i < declarations->length; i++) {
-		if (declarations->data[i].it.function.name == "main") {
+		if (strcmp(declarations->data[i].it.function.name, "main") == 0) {
 			return validateMainFunctionCall(declarations->data[i], state);
 		}
 	}

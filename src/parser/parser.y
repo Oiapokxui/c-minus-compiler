@@ -55,7 +55,7 @@ declaration_list :
             "L%i: Programa nao comeca com uma definicao valida de variaveis ou funcoes.\n",
             getState()->currentLine
         );
-		YYERROR;
+		YYABORT;
     };
 declaration :
     var_declaration {
@@ -73,6 +73,15 @@ function_declaration :
         validateSymbolNotExistsInCurrentScope($2, state);
         createFunction($1, $2, arity, &($5.data), functionScope, state);
         $$ = $2;
+    }
+    | type_spec ID error {
+        fprintf(
+            stderr,
+            "L%i: Funcao `%s` nao possui parametros validos\n",
+            getState()->currentLine,
+            $2
+        );
+		YYERROR;
     }
     | type_spec error '(' params ')' compound_statement {
         fprintf(
@@ -410,7 +419,7 @@ call :
     | ID '(' error ')' {
         fprintf(
             stderr,
-            "L%i: Ativacao da funcao `%s` nao possui argumentos vlaidos\n",
+            "L%i: Ativacao da funcao `%s` nao possui argumentos validos\n",
             getState()->currentLine,
             $1
         );
