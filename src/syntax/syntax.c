@@ -168,7 +168,7 @@ void validateIntReturnedFrom(struct Expression expression, char *contextOperatio
 	}
 }
 
-void validateMainFunctionCall(struct Symbol main, struct State *state) {
+void validateMainFunctionCall(struct Symbol main, int mainDeclarationIndex, int totalDeclarations, struct State *state) {
 	if (state == NULL || state->symbolTable == NULL) {
 		return genericError("estado do parser esta invalido", state);
 	}
@@ -177,6 +177,9 @@ void validateMainFunctionCall(struct Symbol main, struct State *state) {
 	}
 	if (main.it.function.arity != 0) {
 		return programWithoutEntrypointError(state);
+	}
+	if (mainDeclarationIndex != totalDeclarations - 1) {
+		return mainEntrypointIsNotDeclaredLastError(state);
 	}
 }
 
@@ -190,7 +193,7 @@ void validateProgramHasMainMethod(struct SymbolArray *declarations, struct State
 
 	for (int i = 0; i < declarations->length; i++) {
 		if (strcmp(declarations->data[i].it.function.name, "main") == 0) {
-			return validateMainFunctionCall(declarations->data[i], state);
+			return validateMainFunctionCall(declarations->data[i], i, declarations->length, state);
 		}
 	}
 	return programWithoutEntrypointError(state);

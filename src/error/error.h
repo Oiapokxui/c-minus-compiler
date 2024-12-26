@@ -16,3 +16,4 @@ void functionArityMismatchedError(char * id, int obtainedLength, int expectedLen
 void intExpressionReturnTypeExpectedError(char * expr, enum ExpressionReturnType type, char *contextOperation, struct State *state);
 
 void programWithoutEntrypointError(struct State *state);
+void mainEntrypointIsNotDeclaredLastError(struct State *state);

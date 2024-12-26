@@ -1,0 +1,13 @@
+void main (void)
+{
+int k;
+int x;
+int v [10];
+int n;
+v[k] = x;
+return n + 2;
+}
+
+void outraFunc(void) {
+    return;
+}

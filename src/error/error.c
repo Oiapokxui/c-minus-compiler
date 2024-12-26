@@ -116,7 +116,15 @@ void functionArityMismatchedError(char * id, int obtainedLength, int expectedLen
 void programWithoutEntrypointError(struct State *state) {
   	fprintf(
       stderr,
-      "Programa nao possui metodo de entrada com assinatura `void main(void)`\n"
+      "Programa nao possui funcao de entrada com assinatura `void main(void)`\n"
+	);
+	increaseErrors(state);
+}
+
+void mainEntrypointIsNotDeclaredLastError(struct State *state) {
+  	fprintf(
+      stderr,
+      "funcao de entrada `void main(void)` nao eh a ultima funcao declarada no programa.\n"
 	);
 	increaseErrors(state);
 }
