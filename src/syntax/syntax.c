@@ -53,6 +53,7 @@ void createFunction(char *type, char *id, int arity, struct Symbol *params, stru
 	}
 
 	func.it.function.scope = functionScope;
+	createdEntry->value = func;
 }
 
 void createFunctionPartially(char *type, char *id, struct State *state) {
@@ -70,7 +71,7 @@ void createFunctionPartially(char *type, char *id, struct State *state) {
 	}
 }
 
-void updateFunction(char *id, int arity, struct Symbol *params, struct SymbolTable *functionScope, struct State *state) {
+void addArgumentsToFunction(char *id, int arity, struct Symbol *params, struct State *state) {
 	if (state == NULL || state->symbolTable == NULL) {
 		return genericError("Error generico: estado do programa esta invalido", state);
 	}
@@ -89,7 +90,21 @@ void updateFunction(char *id, int arity, struct Symbol *params, struct SymbolTab
 		func.it.function.params = params;
 	}
 
-	func.it.function.scope = functionScope;
+	createdEntry->value = func;
+}
+
+void addScopeToFunction(char *id, struct SymbolTable *functionScope, struct State *state) {
+	if (state == NULL || state->symbolTable == NULL) {
+		return genericError("Error generico: estado do programa esta invalido", state);
+	}
+
+	struct TableEntry *createdEntry = getSymbol(id, state->symbolTable);
+
+	if (createdEntry == NULL) {
+		return symbolUsageBeforeDeclarationError(id, state);
+	}
+
+	createdEntry->value.it.function.scope = functionScope;
 }
 
 struct Expression createVariableExpression(char *id, char *text, struct State *state) {

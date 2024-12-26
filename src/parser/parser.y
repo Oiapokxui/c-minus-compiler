@@ -67,15 +67,18 @@ declaration :
     }
 ;
 function_declaration :
-    type_spec ID '(' {
-        validateSymbolNotExistsInCurrentScope($2, getState());
-        createFunctionPartially($1, $2, getState());
-        enterNewScope(getState());
-    }  params ')' compound_statement {
+    type_spec ID  {
+        struct State *state = getState();
+        validateSymbolNotExistsInCurrentScope($2, state);
+        createFunctionPartially($1, $2, state);
+        enterNewScope(state);
+    } '(' params ')' {
+        int arity = $5.length;
+        addArgumentsToFunction($2, arity, &($5.data), getState());
+    }  compound_statement {
         struct State *state = getState();
         struct SymbolTable *functionScope = exitCurrentScope(state);
-        int arity = $5.length;
-        updateFunction($2, arity, &($5.data), functionScope, state);
+        addScopeToFunction($2, functionScope, state);
         $$ = $2;
     }
     | type_spec ID error {

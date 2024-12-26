@@ -52,7 +52,7 @@ void symbolAlreadyDeclared(char * id, struct State *state) {
 }
 
 void symbolCreationFailedError(char * id, struct State *state) {
-  	fprintf(stderr, "Erro ao inserir `%s` na tabela de simbolos\n", id);
+  	fprintf(stderr, "L%i: Erro ao inserir `%s` na tabela de simbolos\n", state->currentLine ,id);
 	increaseErrors(state);
 };
 

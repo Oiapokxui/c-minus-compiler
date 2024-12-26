@@ -72,7 +72,7 @@ struct TableEntry *createFunctionSymbol(char *type, char *id, struct SymbolTable
 		.it = {
 			.function = {
 				.name = id,
-				.returns = returnType
+				.returns = returnType,
 			}
 		}
 	};
