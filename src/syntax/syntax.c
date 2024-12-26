@@ -76,7 +76,7 @@ void addArgumentsToFunction(char *id, int arity, struct Symbol *params, struct S
 		return genericError("Error generico: estado do programa esta invalido", state);
 	}
 
-	struct TableEntry *createdEntry = getSymbol(id, state->symbolTable);
+	struct TableEntry *createdEntry = getSymbolAllScopesFromStack(id, state->symbolTable);
 
 	if (createdEntry == NULL) {
 		return symbolUsageBeforeDeclarationError(id, state);
@@ -98,7 +98,7 @@ void addScopeToFunction(char *id, struct SymbolTable *functionScope, struct Stat
 		return genericError("Error generico: estado do programa esta invalido", state);
 	}
 
-	struct TableEntry *createdEntry = getSymbol(id, state->symbolTable);
+	struct TableEntry *createdEntry = getSymbolAllScopesFromStack(id, state->symbolTable);
 
 	if (createdEntry == NULL) {
 		return symbolUsageBeforeDeclarationError(id, state);
@@ -108,7 +108,7 @@ void addScopeToFunction(char *id, struct SymbolTable *functionScope, struct Stat
 }
 
 struct Expression createVariableExpression(char *id, char *text, struct State *state) {
-	struct TableEntry *entry = getSymbol(id, state->symbolTable);
+	struct TableEntry *entry = getSymbolAllScopesFromStack(id, state->symbolTable);
 	if (entry == NULL) {
 		return (struct Expression) { .returnType = EXPR_ERROR, .text = text };
 	}
@@ -124,7 +124,7 @@ void validateIntTypeSpec(char *type, char *id, struct State *state) {
 
 void validateSymbolNotExistsInCurrentScope(char *id, struct State *state) {
 	struct SymbolTable *current = state->symbolTable;
-	struct TableEntry *existingEntry = getSymbol(id, current);
+	struct TableEntry *existingEntry = getSymbolCurrentScope(id, current);
 	if (existingEntry != NULL) {
 		return symbolAlreadyDeclared(id, state);
 	}
@@ -132,23 +132,19 @@ void validateSymbolNotExistsInCurrentScope(char *id, struct State *state) {
 
 void validateSymbolExistsInAnyScope(char *id, struct State *state) {
 	struct SymbolTable *current = state->symbolTable;
-	while (current != NULL) {
-		struct TableEntry *existingEntry = getSymbol(id, current);
-		if (existingEntry != NULL) {
-			return;
-		}
-		current = current->previous;
+	struct TableEntry *existingEntry = getSymbolAllScopesFromStack(id, current);
+	if (existingEntry == NULL) {
+		return symbolUsageBeforeDeclarationError(id, state);
 	}
-	symbolUsageBeforeDeclarationError(id, state);
 }
 
 void validateIntegerArraySymbol(char *id, struct State *state) {
-	struct TableEntry *existingEntry = getSymbol(id, state->symbolTable);
+	struct TableEntry *existingEntry = getSymbolAllScopesFromStack(id, state->symbolTable);
 	if (existingEntry != NULL && existingEntry->value.type != ARRAY_VARIABLE) return symbolHasNotIntegerArrayType(id, state);
 }
 
 void validateNotFunctionSymbol(char *id, struct State *state) {
-	struct TableEntry *existingEntry = getSymbol(id, state->symbolTable);
+	struct TableEntry *existingEntry = getSymbolAllScopesFromStack(id, state->symbolTable);
 	if (existingEntry != NULL && existingEntry->value.type == FUNCTION) return functionNameWithoutCall(id, state);
 }
 
@@ -157,7 +153,7 @@ void validateArgsArity(char *id, int argsLength, struct State *state) {
 		return genericError("Error generico: estado do programa esta invalido", state);
 	}
 
-	struct TableEntry *existingEntry = getSymbol(id, state->symbolTable);
+	struct TableEntry *existingEntry = getSymbolAllScopesFromStack(id, state->symbolTable);
 
 	if (existingEntry == NULL) {
 		return;

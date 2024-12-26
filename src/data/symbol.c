@@ -169,13 +169,22 @@ static bool _expand(struct SymbolTable *table) {
     return true;
 }
 
-struct TableEntry *getSymbol(char *key, struct SymbolTable *table) {
+struct TableEntry *getSymbolCurrentScope(char *key, struct SymbolTable *table) {
+	if (table == NULL || table->entries == NULL) {
+		return NULL;
+	}
+	uint64_t id_hashed = hash(key);
+	size_t index = id_hashed % (table->capacity - 1);
+	return _probe(key, index, table->capacity, table->entries);
+}
+
+struct TableEntry *getSymbolAllScopesFromStack(char *key, struct SymbolTable *table) {
 	struct SymbolTable *currentTable = table;
 	struct TableEntry *symbolEntry = NULL;
 	while (currentTable != NULL && currentTable->entries != NULL) {
 
 		uint64_t id_hashed = hash(key);
-		size_t index = id_hashed % (table->capacity - 1);
+		size_t index = id_hashed % (currentTable->capacity - 1);
 
 		symbolEntry = _probe(key, index, currentTable->capacity, currentTable->entries);
 		if (symbolEntry != NULL) {

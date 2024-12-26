@@ -64,7 +64,8 @@ struct TableEntry *createArraySymbol(char *id, int size, struct SymbolTable *tab
 struct TableEntry *createFunctionSymbol(char *type, char *id, struct SymbolTable *symbolTable);
 
 struct SymbolTable *createSymbolTable(void) ;
-struct TableEntry *getSymbol(char *id, struct SymbolTable *table);
+struct TableEntry *getSymbolCurrentScope(char *key, struct SymbolTable *table);
+struct TableEntry *getSymbolAllScopesFromStack(char *key, struct SymbolTable *table);
 struct TableEntry *insertSymbol(char *id, struct Symbol symbol, struct SymbolTable *table);
 
 enum ReturnType stringToReturnType(char *string);

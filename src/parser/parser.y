@@ -60,10 +60,10 @@ declaration_list :
     };
 declaration :
     var_declaration {
-        $$ = getSymbol($1, getState()->symbolTable)->value;
+        $$ = getSymbolAllScopesFromStack($1, getState()->symbolTable)->value;
     }
     | function_declaration {
-        $$ = getSymbol($1, getState()->symbolTable)->value;
+        $$ = getSymbolAllScopesFromStack($1, getState()->symbolTable)->value;
     }
 ;
 function_declaration :
@@ -330,7 +330,7 @@ var :
         validateSymbolExistsInAnyScope($1, state);
         validateNotFunctionSymbol($1, state);
         validateIntegerArraySymbol($1, state);
-        struct TableEntry *entry = getSymbol($1, state->symbolTable);
+        struct TableEntry *entry = getSymbolAllScopesFromStack($1, state->symbolTable);
         if (entry == NULL) {
             $$ = (struct Expression) { .returnType = EXPR_ERROR, .text = $1 };
         }
@@ -404,7 +404,7 @@ call :
         validateSymbolExistsInAnyScope($1, state);
         validateArgsArity($1, $3.length, state);
 
-        struct TableEntry *entry = getSymbol($1, state->symbolTable);
+        struct TableEntry *entry = getSymbolAllScopesFromStack($1, state->symbolTable);
         if (entry == NULL
             || entry->value.type != FUNCTION
         ) {
