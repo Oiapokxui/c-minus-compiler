@@ -55,9 +55,8 @@ function_declaration :
         struct State *state = getState();
         struct SymbolTable *functionScope = exitCurrentScope(state);
         int arity = $5.length;
-        struct Symbol (*data)[256] = &($5.data);
         validateSymbolNotExistsInCurrentScope($2, state);
-        createFunction($1, $2, arity, data, functionScope, state);
+        createFunction($1, $2, arity, &($5.data), functionScope, state);
     }
     | type_spec error '(' params ')' compound_statement {
         fprintf(
@@ -435,8 +434,11 @@ void yyerror(const char* msg) {
 int main(void) {
 	extern int yydebug;
 	yydebug = 0; // Mudar para 1 se quiser detalhes para debug do parser
-
 	setState(initState());
+	// As funcoes `input()` e `output()` sao predefinidas na linguagem
+	// TODO: Fornecer impl padrao para essas funcoes
+    struct Symbol *outputParams = &((struct Symbol) { .type = VARIABLE, .it = { .variable = { .name = "x" } } });
+    createFunction("void", "output", 1, outputParams, NULL, getState());
+    createFunction("int", "input", 0, NULL, NULL, getState());
     int result = yyparse();
-	if (getState()->errors > 0) return -1;
 }

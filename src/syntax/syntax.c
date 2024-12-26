@@ -30,7 +30,7 @@ void createArrayVariable(char *id, char *lengthString, struct State *state) {
 	}
 }
 
-void createFunction(char *type, char *id, int arity, struct Symbol (*params)[256], struct SymbolTable *functionScope, struct State *state) {
+void createFunction(char *type, char *id, int arity, struct Symbol *params, struct SymbolTable *functionScope, struct State *state) {
 	if (state == NULL || state->symbolTable == NULL) {
 		return genericError("Error generico: estado do programa esta invalido", state);
 	}
@@ -39,7 +39,7 @@ void createFunction(char *type, char *id, int arity, struct Symbol (*params)[256
 		return functionReturnTypeIsInvalid(type, id, state);
 	}
 
-	struct TableEntry *createdEntry = createFunctionSymbol(type, id, arity, *params, functionScope, state->symbolTable);
+	struct TableEntry *createdEntry = createFunctionSymbol(type, id, arity, params, functionScope, state->symbolTable);
 	if (createdEntry == NULL) {
 		return symbolCreationFailedError(id, state);
 	}
