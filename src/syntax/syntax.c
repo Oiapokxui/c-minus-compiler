@@ -4,13 +4,9 @@
 
 void createVariable(char *id, struct State *state) {
 	if (state == NULL || state->symbolTable == NULL) {
-		genericError("Error generico: estado do programa esta invalido", state);
+		return genericError("Error generico: estado do programa esta invalido", state);
 	}
 
-	struct TableEntry *existingEntry = getSymbol(id, state->symbolTable);
-	if (existingEntry != NULL) {
-		return symbolAlreadyDeclared(id, state);
-	}
 	struct TableEntry *createdEntry = createVariableSymbol(id, state->symbolTable);
 	if (createdEntry == NULL) {
 		return symbolCreationFailedError(id, state);
@@ -19,17 +15,13 @@ void createVariable(char *id, struct State *state) {
 
 void createArrayVariable(char *id, char *lengthString, struct State *state) {
 	if (state == NULL || state->symbolTable == NULL) {
-		return genericError("Error generico: estado do programa esta invalido", state);
+		return genericError("estado do programa esta invalido", state);
 	}
-    int length = atoi(lengthString);
-    if (length < 1) {
-		return genericError("Error generico: nao foi possivel converter inteiro representado em string para inteiro", state);
-    }
 
-	struct TableEntry *existingEntry = getSymbol(id, state->symbolTable);
-	if (existingEntry != NULL) {
-		return symbolAlreadyDeclared(id, state);
-	}
+    int length = atoi(lengthString);
+    if (length < -1) { // -1 is a length reserved for unknown array length. Other lenghts bigger than this one are valid.
+		return genericError("nao foi possivel converter inteiro representado em string para inteiro", state);
+    }
 
 	// TODO: Make sure array creation won't fail if index == 0
 	struct TableEntry *createdEntry = createArraySymbol(id, length, state->symbolTable);
@@ -38,22 +30,16 @@ void createArrayVariable(char *id, char *lengthString, struct State *state) {
 	}
 }
 
-void createFunction(char *type, char *id, int arity, struct Symbol (*params)[256], struct State *state) {
+void createFunction(char *type, char *id, int arity, struct Symbol (*params)[256], struct SymbolTable *functionScope, struct State *state) {
 	if (state == NULL || state->symbolTable == NULL) {
 		return genericError("Error generico: estado do programa esta invalido", state);
-	}
-
-	struct TableEntry *existingEntry = getSymbol(id, state->symbolTable);
-
-	if (existingEntry != NULL) {
-		return symbolAlreadyDeclared(id, state);
 	}
 
 	if (type == NULL) {
 		return functionReturnTypeIsInvalid(type, id, state);
 	}
 
-	struct TableEntry *createdEntry = createFunctionSymbol(type, id, arity, *params, state->symbolTable);
+	struct TableEntry *createdEntry = createFunctionSymbol(type, id, arity, *params, functionScope, state->symbolTable);
 	if (createdEntry == NULL) {
 		return symbolCreationFailedError(id, state);
 	}
@@ -63,9 +49,24 @@ void validateIntTypeSpec(char *type, char *id, struct State *state) {
 	if (strcmp("int", type) != 0) variableTypeIsInvalidError(type, id, state);
 }
 
-void validateSymbolExistence(char *id, struct State *state) {
-	struct TableEntry *existingEntry = getSymbol(id, state->symbolTable);
-	if (existingEntry == NULL) symbolUsageBeforeDeclarationError(id, state);
+void validateSymbolNotExistsInCurrentScope(char *id, struct State *state) {
+	struct SymbolTable *current = state->symbolTable;
+	struct TableEntry *existingEntry = getSymbol(id, current);
+	if (existingEntry != NULL) {
+		return symbolAlreadyDeclared(id, state);
+	}
+}
+
+void validateSymbolExistsInAnyScope(char *id, struct State *state) {
+	struct SymbolTable *current = state->symbolTable;
+	while (current != NULL) {
+		struct TableEntry *existingEntry = getSymbol(id, current);
+		if (existingEntry != NULL) {
+			return;
+		}
+		current = current->previous;
+	}
+	symbolUsageBeforeDeclarationError(id, state);
 }
 
 void validateIntegerArraySymbol(char *id, struct State *state) {

@@ -1,0 +1,13 @@
+int x;
+
+void novoEscopo(int x[]) {
+    int a;
+    a = 1;
+    {
+        int x;
+    }
+}
+
+void main(void) {
+    x = 1;
+}

@@ -32,6 +32,32 @@ void setState(struct State *newState) {
 	state = newState;
 }
 
+struct SymbolTable *enterNewScope(struct State *state) {
+
+	if (state == NULL || state->symbolTable == NULL) {
+		return NULL;
+	}
+	struct SymbolTable *outerScope = state->symbolTable;
+	struct SymbolTable *innerScope = createSymbolTable();
+	if (innerScope == NULL) {
+		return NULL;
+	}
+	innerScope->previous = outerScope;
+	state->symbolTable = innerScope;
+	return innerScope;
+}
+
+
+struct SymbolTable *exitCurrentScope(struct State *state) {
+
+	if (state == NULL || state->symbolTable == NULL || state->symbolTable->previous == NULL) {
+		return NULL;
+	}
+	struct SymbolTable *currentScope = state->symbolTable;
+	state->symbolTable = currentScope->previous;
+	return currentScope;
+}
+
 char *appendChar(char* buffer, int *length, int *capacity, char c) {
 	if (*length + 1 >= *capacity && buffer != NULL) {
 		*capacity *= 2;

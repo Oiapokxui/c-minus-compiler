@@ -5,6 +5,8 @@
 #include <string.h>  /* Declares functions operating on strings.  */
 #include "symbol.h" /* Declares functions to be used by Lexer */
 
+#include <cminus.h>
+
 enum ReturnType stringToReturnType(char *string) {
 	if (string != NULL && strcmp(string, "int") != 0) return RET_VOID;
 	return RET_INT;
@@ -26,55 +28,39 @@ struct TableEntry * allocEntry(char * symbolPtr, struct Symbol value) {
 	return ptr;
 }
 
-struct TableEntry *updateVariableSymbol(char *id, int value, struct SymbolTable *symbolTable) {
-	struct TableEntry *entry = getSymbol(id, symbolTable);
-    if (entry == NULL) {
-		return NULL;
-    }
-    if (entry->value.type != VARIABLE) {
-      return NULL;
-    }
-    (entry->value.it.variable.value) = value;
-    return entry;
-}
-
 struct TableEntry *createVariableSymbol(char *name, struct SymbolTable *symbolTable) {
  	if (symbolTable == NULL) {
         return NULL;
  	}
 	;
-	struct SingleVariableSymbol *variable = malloc(sizeof(struct SingleVariableSymbol));
-    if (variable == NULL) {
-		return NULL;
-    }
-	variable->name = name;
-	struct Symbol symbol = (struct Symbol) { .type = VARIABLE, .it = { .variable = *variable } };
-    struct TableEntry *tableEntry = insertSymbol(name, symbol, symbolTable);
-	return tableEntry;
+	struct Symbol symbol = (struct Symbol) {
+		.type = VARIABLE,
+		.it = {
+			.variable = {
+				.name = name,
+			}
+		}
+	};
+    return insertSymbol(name, symbol, symbolTable);
 }
 
 struct TableEntry *createArraySymbol(char *name, int size, struct SymbolTable *symbolTable) {
   	if (symbolTable == NULL) {
         return NULL;
   	}
-	int *intArray = calloc(size, sizeof(int));
-   	if (intArray == NULL) {
-        return NULL;
-	}
 	struct Symbol symbol = (struct Symbol) {
 		.type = ARRAY_VARIABLE,
 		.it = {
 			.array = {
 				.name = name,
 				.size = size,
-				.value = intArray
 		}
 	} };
 
     return insertSymbol(name, symbol, symbolTable);
 }
 
-struct TableEntry *createFunctionSymbol(char *type, char *id, int arity, struct Symbol *params, struct SymbolTable *symbolTable) {
+struct TableEntry *createFunctionSymbol(char *type, char *id, int arity, struct Symbol *params, struct SymbolTable * functionScope, struct SymbolTable *symbolTable) {
 	if (symbolTable == NULL) {
         return NULL;
   	}
@@ -88,8 +74,10 @@ struct TableEntry *createFunctionSymbol(char *type, char *id, int arity, struct 
 				.name = id,
 				.arity = arity,
 				.returns = returnType,
+				.scope = functionScope
+			}
 		}
-	} };
+	};
 
 	if (arity > 0 && params != NULL) {
 		symbol.it.function.params = params;
@@ -231,6 +219,7 @@ struct SymbolTable *createSymbolTable(void) {
         free(table); // error, free table before we return!
         return NULL;
     }
+	table->previous = NULL;
     return table;
 }
 

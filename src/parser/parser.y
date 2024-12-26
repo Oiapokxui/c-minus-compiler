@@ -36,7 +36,6 @@ int yylex(); // nao compila sem essa linha
 %token <text> SPECIAL
 
 %%
-// grammar
 program :
     declaration_list
 declaration_list :
@@ -52,10 +51,13 @@ declaration_list :
     };
 declaration : var_declaration | function_declaration ;
 function_declaration :
-    type_spec ID '(' params ')' compound_statement {
-        int arity = $4.length;
-        struct Symbol (*data)[256] = &($4.data);
-        createFunction($1, $2, arity, data, getState());
+    type_spec ID '(' { enterNewScope(getState()); }  params ')' compound_statement {
+        struct State *state = getState();
+        struct SymbolTable *functionScope = exitCurrentScope(state);
+        int arity = $5.length;
+        struct Symbol (*data)[256] = &($5.data);
+        validateSymbolNotExistsInCurrentScope($2, state);
+        createFunction($1, $2, arity, data, functionScope, state);
     }
     | type_spec error '(' params ')' compound_statement {
         fprintf(
@@ -71,6 +73,7 @@ var_declaration :
         $$ = $2;
         struct State *state = getState();
         validateIntTypeSpec($1, $2, state);
+        validateSymbolNotExistsInCurrentScope($2, state);
         createVariable($2, state);
     }
     | type_spec error ';' {
@@ -95,6 +98,7 @@ var_declaration :
         $$ = $2;
         struct State *state = getState();
         validateIntTypeSpec($1, $2, state);
+        validateSymbolNotExistsInCurrentScope($2, state);
         createArrayVariable($2, $4, state);
 	}
     | type_spec error '[' NUM ']' ';' {
@@ -144,7 +148,6 @@ params :
     };
 params_list :
     params_list ',' param {
-        // TODO: Array is not carrying from one match to another
         insertToSymbolArray(&($1), $3);
         $$ = $1;
     }
@@ -158,12 +161,12 @@ params_list :
 param :
     type_spec ID {
         validateIntTypeSpec($1, $2, getState());
-        // TOOD: IMPLEMENTAR STACK de contextos e inserir variavel no contexto certo
+        createVariable($1, getState());
         $$ = (struct Symbol) { .type = VARIABLE, .it = { .variable = { .name = $2 } } };
     }
     | type_spec ID '[' ']' {
         validateIntTypeSpec($1, $2, getState());
-        // TOOD: IMPLEMENTAR STACK de contextos e inserir variavel no contexto certo
+        createArrayVariable($2, "-1", getState());
         $$ = (struct Symbol) { .type = ARRAY_VARIABLE, .it = { .array = { .name = $2 } } };
     }
     | type_spec error {
@@ -189,7 +192,9 @@ compound_statement:
             .type = STMNT_COMPOUND,
             .it = {
                 .compound = {
-                    .declarations = $2.data
+                    .declarations = $2.data,
+                    .statements = &$3,
+                    .currentScope = getState()->symbolTable
                 }
             }
         };
@@ -219,7 +224,8 @@ statement :
     expr_statement {
         $$ = (struct Statement) { .type = STMNT_EXPRESSION };
     }
-    | compound_statement {
+    | { enterNewScope(getState()); } compound_statement {
+        struct SymbolTable *functionScope = exitCurrentScope(getState());
         $$ = (struct Statement) { .type = STMNT_COMPOUND };
     }
     | selection_statement {
@@ -284,7 +290,7 @@ expr :
 var :
     ID {
         struct State *state = getState();
-        validateSymbolExistence($1, state);
+        validateSymbolExistsInAnyScope($1, state);
         validateNotFunctionSymbol($1, state);
         struct TableEntry *entry = getSymbol($1, state->symbolTable);
         if (entry == NULL) {
@@ -299,7 +305,7 @@ var :
     }
     | ID '[' expr ']' {
         struct State *state = getState();
-        validateSymbolExistence($1, state);
+        validateSymbolExistsInAnyScope($1, state);
         validateNotFunctionSymbol($1, state);
         validateIntegerArraySymbol($1, state);
         struct TableEntry *entry = getSymbol($1, state->symbolTable);
@@ -370,7 +376,7 @@ factor :
 call :
     ID '(' args ')' {
         struct State *state = getState();
-        validateSymbolExistence($1, state);
+        validateSymbolExistsInAnyScope($1, state);
         validateArgsArity($1, $3.length, state);
 
         struct TableEntry *entry = getSymbol($1, state->symbolTable);

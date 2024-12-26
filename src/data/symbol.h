@@ -22,17 +22,16 @@ struct FunctionSymbol {
 	enum ReturnType returns;
 	int arity;
 	struct Symbol *params;
+	struct SymbolTable *scope;
 };
 
 struct SingleVariableSymbol {
 	char* name;
-	int value;
 };
 
 struct ArrayVariableSymbol {
 	char* name;
 	int size;
-	int *value;
 };
 
 struct Symbol {
@@ -52,19 +51,20 @@ struct TableEntry {
 // SymbolTable is a HashTable
 // The current implementation is FNV-1a
 struct SymbolTable {
-	// Array of pointers to TableEntry
+	// Scope inside which this scope is defined
+	struct SymbolTable *previous;
+	// SymbolTable 1->n TableEntry 1->1 Symbol
 	struct TableEntry ** entries;
 	int length;
-	int capacity;	
+	int capacity;
 };
 
 struct TableEntry *createVariableSymbol(char *id, struct SymbolTable *table);
-struct TableEntry *updateVariableSymbol(char* id, int value, struct SymbolTable *table);
-struct TableEntry *createFunctionSymbol(char *type, char *id, int arity, struct Symbol *params, struct SymbolTable *table);
 struct TableEntry *createArraySymbol(char *id, int size, struct SymbolTable *table);
+struct TableEntry *createFunctionSymbol(char *type, char *id, int arity, struct Symbol *params, struct SymbolTable *functionScope, struct SymbolTable *symbolTable);
 
 struct SymbolTable *createSymbolTable(void) ;
-struct TableEntry *getSymbol(char *id, struct SymbolTable * table);
+struct TableEntry *getSymbol(char *id, struct SymbolTable *table);
 struct TableEntry *insertSymbol(char *id, struct Symbol symbol, struct SymbolTable *table);
 
 enum ReturnType stringToReturnType(char *string);
