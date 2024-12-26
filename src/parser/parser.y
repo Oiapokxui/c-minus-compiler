@@ -47,6 +47,7 @@ declaration_list :
     }
     | declaration {
         struct SymbolArray *newArray = malloc(sizeof(struct SymbolArray));
+        insertToSymbolArray(newArray, $1);
         $$ = *newArray;
     }
     | error {
