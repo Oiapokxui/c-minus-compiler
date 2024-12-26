@@ -61,7 +61,7 @@ struct SymbolTable {
 
 struct TableEntry *createVariableSymbol(char *id, struct SymbolTable *table);
 struct TableEntry *createArraySymbol(char *id, int size, struct SymbolTable *table);
-struct TableEntry *createFunctionSymbol(char *type, char *id, int arity, struct Symbol *params, struct SymbolTable *functionScope, struct SymbolTable *symbolTable);
+struct TableEntry *createFunctionSymbol(char *type, char *id, struct SymbolTable *symbolTable);
 
 struct SymbolTable *createSymbolTable(void) ;
 struct TableEntry *getSymbol(char *id, struct SymbolTable *table);

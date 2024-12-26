@@ -39,10 +39,57 @@ void createFunction(char *type, char *id, int arity, struct Symbol *params, stru
 		return functionReturnTypeIsInvalid(type, id, state);
 	}
 
-	struct TableEntry *createdEntry = createFunctionSymbol(type, id, arity, params, functionScope, state->symbolTable);
+	struct TableEntry *createdEntry = createFunctionSymbol(type, id, state->symbolTable);
 	if (createdEntry == NULL) {
 		return symbolCreationFailedError(id, state);
 	}
+
+	struct Symbol func = createdEntry->value;
+
+	func.it.function.arity = arity;
+
+	if (arity > 0 && params != NULL) {
+		func.it.function.params = params;
+	}
+
+	func.it.function.scope = functionScope;
+}
+
+void createFunctionPartially(char *type, char *id, struct State *state) {
+	if (state == NULL || state->symbolTable == NULL) {
+		return genericError("Error generico: estado do programa esta invalido", state);
+	}
+
+	if (type == NULL) {
+		return functionReturnTypeIsInvalid(type, id, state);
+	}
+
+	struct TableEntry *createdEntry = createFunctionSymbol(type, id, state->symbolTable);
+	if (createdEntry == NULL) {
+		return symbolCreationFailedError(id, state);
+	}
+}
+
+void updateFunction(char *id, int arity, struct Symbol *params, struct SymbolTable *functionScope, struct State *state) {
+	if (state == NULL || state->symbolTable == NULL) {
+		return genericError("Error generico: estado do programa esta invalido", state);
+	}
+
+	struct TableEntry *createdEntry = getSymbol(id, state->symbolTable);
+
+	if (createdEntry == NULL) {
+		return symbolUsageBeforeDeclarationError(id, state);
+	}
+
+	struct Symbol func = createdEntry->value;
+
+	func.it.function.arity = arity;
+
+	if (arity > 0 && params != NULL) {
+		func.it.function.params = params;
+	}
+
+	func.it.function.scope = functionScope;
 }
 
 void validateIntTypeSpec(char *type, char *id, struct State *state) {

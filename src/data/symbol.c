@@ -60,7 +60,7 @@ struct TableEntry *createArraySymbol(char *name, int size, struct SymbolTable *s
     return insertSymbol(name, symbol, symbolTable);
 }
 
-struct TableEntry *createFunctionSymbol(char *type, char *id, int arity, struct Symbol *params, struct SymbolTable * functionScope, struct SymbolTable *symbolTable) {
+struct TableEntry *createFunctionSymbol(char *type, char *id, struct SymbolTable *symbolTable) {
 	if (symbolTable == NULL) {
         return NULL;
   	}
@@ -72,16 +72,10 @@ struct TableEntry *createFunctionSymbol(char *type, char *id, int arity, struct 
 		.it = {
 			.function = {
 				.name = id,
-				.arity = arity,
-				.returns = returnType,
-				.scope = functionScope
+				.returns = returnType
 			}
 		}
 	};
-
-	if (arity > 0 && params != NULL) {
-		symbol.it.function.params = params;
-	}
 
     return insertSymbol(id, symbol, symbolTable);
 }
