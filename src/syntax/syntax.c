@@ -110,6 +110,34 @@ void validateIntReturnedFrom(struct Expression expression, char *contextOperatio
 	}
 }
 
+void validateMainFunctionCall(struct Symbol main, struct State *state) {
+	if (state == NULL || state->symbolTable == NULL) {
+		return genericError("estado do parser esta invalido", state);
+	}
+	if (main.type != FUNCTION) {
+		return programWithoutEntrypointError(state);
+	}
+	if (main.it.function.arity != 0) {
+		return programWithoutEntrypointError(state);
+	}
+}
+
+void validateProgramHasMainMethod(struct SymbolArray *declarations, struct State *state) {
+	if (state == NULL || state->symbolTable == NULL) {
+		return genericError("estado do parser esta invalido", state);
+	}
+	if (declarations == NULL) {
+		return genericError("programa deve conter uma ou mais declaracoes", state);
+	}
+
+	for (int i = 0; i < declarations->length; i++) {
+		if (declarations->data[i].it.function.name == "main") {
+			return validateMainFunctionCall(declarations->data[i], state);
+		}
+	}
+	return programWithoutEntrypointError(state);
+}
+
 enum LIST_ERRORS insertToSymbolArray(struct SymbolArray *list, struct Symbol symbol) {
     int nextIndex = list->length;
 	if (nextIndex < 0 || nextIndex >= 256) return LIST_INDEX_OUT_OF_RANGE;

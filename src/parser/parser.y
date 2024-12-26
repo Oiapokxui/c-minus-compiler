@@ -12,10 +12,10 @@ int yylex(); // nao compila sem essa linha
 // WIll allow to define custom union type in a separate file
 %define api.value.type { union YYSTYPE }
 
-%type <text> var_declaration type_spec
+%type <text> function_declaration var_declaration type_spec
 %type <expression> expr var factor call term simple_expr sum_expr
-%type <symbol> param
-%type <symbolArray> params params_list
+%type <symbol> param declaration
+%type <symbolArray> params params_list program declaration_list
 %type <expressionArray> args arg_list
 %type <statementArray> statement_list
 %type <statement> compound_statement statement
@@ -37,10 +37,18 @@ int yylex(); // nao compila sem essa linha
 
 %%
 program :
-    declaration_list
+    declaration_list {
+      validateProgramHasMainMethod(&$1, getState());
+    }
 declaration_list :
-    declaration_list declaration
-    | declaration
+    declaration_list declaration {
+        insertToSymbolArray(&($1), $2);
+        $$ = $1;
+    }
+    | declaration {
+        struct SymbolArray *newArray = malloc(sizeof(struct SymbolArray));
+        $$ = *newArray;
+    }
     | error {
         fprintf(
             stderr,
@@ -49,7 +57,14 @@ declaration_list :
         );
 		YYERROR;
     };
-declaration : var_declaration | function_declaration ;
+declaration :
+    var_declaration {
+        $$ = getSymbol($1, getState()->symbolTable)->value;
+    }
+    | function_declaration {
+        $$ = getSymbol($1, getState()->symbolTable)->value;
+    }
+;
 function_declaration :
     type_spec ID '(' { enterNewScope(getState()); }  params ')' compound_statement {
         struct State *state = getState();
@@ -57,6 +72,7 @@ function_declaration :
         int arity = $5.length;
         validateSymbolNotExistsInCurrentScope($2, state);
         createFunction($1, $2, arity, &($5.data), functionScope, state);
+        $$ = $2;
     }
     | type_spec error '(' params ')' compound_statement {
         fprintf(
@@ -160,7 +176,7 @@ params_list :
 param :
     type_spec ID {
         validateIntTypeSpec($1, $2, getState());
-        createVariable($1, getState());
+        createVariable($2, getState());
         $$ = (struct Symbol) { .type = VARIABLE, .it = { .variable = { .name = $2 } } };
     }
     | type_spec ID '[' ']' {
@@ -441,4 +457,5 @@ int main(void) {
     createFunction("void", "output", 1, outputParams, NULL, getState());
     createFunction("int", "input", 0, NULL, NULL, getState());
     int result = yyparse();
+    if (getState()->errors > 0) return -1;
 }

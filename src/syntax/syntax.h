@@ -23,6 +23,7 @@ void validateNotFunctionSymbol(char *id, struct State *state);
 void validateArgsArity(char *id, int argsLength, struct State *state);
 void validateIntegerArraySymbol(char *id, struct State *state);
 void validateIntReturnedFrom(struct Expression expression, char *contextOperation, struct State *state);
+void validateProgramHasMainMethod(struct SymbolArray *declarations, struct State *state);
 
 struct SingleVariableSymbol getVariable(char *id, struct State *state);
 

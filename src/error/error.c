@@ -111,3 +111,11 @@ void functionArityMismatchedError(char * id, int obtainedLength, int expectedLen
 	);
 	increaseErrors(state);
 }
+
+void programWithoutEntrypointError(struct State *state) {
+  	fprintf(
+      stderr,
+      "Programa nao possui metodo de entrada com assinatura `void main(void)`\n"
+	);
+	increaseErrors(state);
+}
