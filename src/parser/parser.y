@@ -402,7 +402,7 @@ call :
     ID '(' args ')' {
         struct State *state = getState();
         validateSymbolExistsInAnyScope($1, state);
-        validateArgsArity($1, $3.length, state);
+        validateArgsArity($1, $3, state);
 
         struct TableEntry *entry = getSymbolAllScopesFromStack($1, state->symbolTable);
         if (entry == NULL

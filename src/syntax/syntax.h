@@ -24,7 +24,7 @@ void validateIntTypeSpec(char *type, char *id, struct State *state);
 void validateSymbolNotExistsInCurrentScope(char *id, struct State *state);
 void validateSymbolExistsInAnyScope(char *id, struct State *state);
 void validateNotFunctionSymbol(char *id, struct State *state);
-void validateArgsArity(char *id, int argsLength, struct State *state);
+void validateArgsArity(char *id, struct ExpressionArray expressionArray, struct State *state);
 void validateIntegerArraySymbol(char *id, struct State *state);
 void validateIntReturnedFrom(struct Expression expression, char *contextOperation, struct State *state);
 void validateProgramHasMainMethod(struct SymbolArray *declarations, struct State *state);

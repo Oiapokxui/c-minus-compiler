@@ -148,7 +148,7 @@ void validateNotFunctionSymbol(char *id, struct State *state) {
 	if (existingEntry != NULL && existingEntry->value.type == FUNCTION) return functionNameWithoutCall(id, state);
 }
 
-void validateArgsArity(char *id, int argsLength, struct State *state) {
+void validateArgsArity(char *id, struct ExpressionArray expressionArray, struct State *state) {
 	if (state == NULL || state->symbolTable == NULL) {
 		return genericError("Error generico: estado do programa esta invalido", state);
 	}
@@ -164,9 +164,8 @@ void validateArgsArity(char *id, int argsLength, struct State *state) {
 	}
 
 	int expectedArity = existingEntry->value.it.function.arity;
-	if (expectedArity != argsLength) {
-
-		functionArityMismatchedError(id, argsLength, expectedArity, state);
+	if (expectedArity != expressionArray.length) {
+		functionArityMismatchedError(id, expressionArray.length, expectedArity, state);
 	}
 }
 
