@@ -17,7 +17,7 @@ void createArrayVariable(char *id, char *length, struct State *state);
 void createFunction(char *type, char *id, int arity, struct Symbol *params, struct SymbolTable *functionScope, struct State *state);
 void createFunctionPartially(char *type, char* id, struct State *state);
 void addScopeToFunction(char *id, struct SymbolTable *functionScope, struct State *state);
-void addArgumentsToFunction(char *id, int arity, struct Symbol *params, struct State *state);
+void addArgumentsToFunction(char *id, struct SymbolArray params, struct State *state);
 struct Expression createVariableExpression(char *id, char *text, struct State *state);
 
 void validateIntTypeSpec(char *type, char *id, struct State *state);

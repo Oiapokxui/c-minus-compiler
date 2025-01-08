@@ -74,7 +74,7 @@ function_declaration :
         enterNewScope(state);
     } '(' params ')' {
         int arity = $5.length;
-        addArgumentsToFunction($2, arity, &($5.data), getState());
+        addArgumentsToFunction($2, $5, getState());
     }  compound_statement {
         struct State *state = getState();
         struct SymbolTable *functionScope = exitCurrentScope(state);

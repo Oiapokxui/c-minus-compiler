@@ -71,7 +71,7 @@ void createFunctionPartially(char *type, char *id, struct State *state) {
 	}
 }
 
-void addArgumentsToFunction(char *id, int arity, struct Symbol *params, struct State *state) {
+void addArgumentsToFunction(char *id, struct SymbolArray symbolArray, struct State *state) {
 	if (state == NULL || state->symbolTable == NULL) {
 		return genericError("Error generico: estado do programa esta invalido", state);
 	}
@@ -84,10 +84,10 @@ void addArgumentsToFunction(char *id, int arity, struct Symbol *params, struct S
 
 	struct Symbol func = createdEntry->value;
 
-	func.it.function.arity = arity;
+	func.it.function.arity = symbolArray.length;
 
-	if (arity > 0 && params != NULL) {
-		func.it.function.params = params;
+	if (symbolArray.length > 0 && symbolArray.data != NULL) {
+		func.it.function.params = &symbolArray.data;
 	}
 
 	createdEntry->value = func;
